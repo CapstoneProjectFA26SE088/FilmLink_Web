@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 export default function Home() {
@@ -61,6 +62,9 @@ export default function Home() {
             rel="noopener noreferrer"
           >
             Documentation
+          </a>
+          <a href="/login">
+            <Button>Login</Button>
           </a>
         </div>
       </main>
