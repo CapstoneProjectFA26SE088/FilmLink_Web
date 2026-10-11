@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { NextResponse } from "next/server"
 
 /**
  * Public routes that do not require authentication
@@ -14,11 +14,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // 1. Skip static assets, Next internals and favicon
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/static") ||
-    pathname.includes(".")
-  ) {
+  if (pathname.startsWith("/_next") || pathname.startsWith("/static") || pathname.includes(".")) {
     return NextResponse.next()
   }
 

@@ -1,11 +1,10 @@
 "use client"
 
-import * as React from "react"
 import { Questionnaire as QuestionnairePrimitive } from "@shadcn/react/questionnaire"
 import { cn } from "cn"
-
-import { buttonVariants, type Button } from "@/components/ui/button"
 import { CheckIcon } from "lucide-react"
+import type * as React from "react"
+import { type Button, buttonVariants } from "@/components/ui/button"
 
 function Questionnaire({
   className,
@@ -43,10 +42,7 @@ function QuestionnaireItem({
   return (
     <QuestionnairePrimitive.Item
       data-slot="questionnaire-item"
-      className={cn(
-        "flex min-w-0 flex-col gap-4 border-0 p-0 outline-none",
-        className
-      )}
+      className={cn("flex min-w-0 flex-col gap-4 border-0 p-0 outline-none", className)}
       {...props}
     />
   )
@@ -88,10 +84,7 @@ function QuestionnaireChoices({
   return (
     <QuestionnairePrimitive.Choices
       data-slot="questionnaire-choices"
-      className={cn(
-        "group/questionnaire-choices grid min-w-0 gap-2",
-        className
-      )}
+      className={cn("group/questionnaire-choices grid min-w-0 gap-2", className)}
       {...props}
     />
   )
@@ -125,7 +118,10 @@ function QuestionnaireChoice({
           data-slot="questionnaire-choice-indicator-dot"
           className="hidden size-2 rounded-full bg-primary-foreground group-data-[type=checkbox]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block"
         />
-        <CheckIcon data-slot="questionnaire-choice-indicator-check" className="hidden size-3.5 group-data-[type=radio]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block" />
+        <CheckIcon
+          data-slot="questionnaire-choice-indicator-check"
+          className="hidden size-3.5 group-data-[type=radio]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block"
+        />
       </span>
       <QuestionnairePrimitive.ChoiceLabel
         data-slot="questionnaire-choice-label"
@@ -141,10 +137,7 @@ function QuestionnaireChoice({
   )
 }
 
-function QuestionnaireChoiceDescription({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function QuestionnaireChoiceDescription({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       data-slot="questionnaire-choice-description"
@@ -189,10 +182,7 @@ function QuestionnaireError({
   )
 }
 
-function QuestionnaireActions({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function QuestionnaireActions({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="questionnaire-actions"

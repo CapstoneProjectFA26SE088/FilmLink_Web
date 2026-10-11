@@ -1,6 +1,6 @@
-import { LoginForm } from "@/components/login/login-form"
 import { GalleryVerticalEndIcon } from "lucide-react"
 import Link from "next/link"
+import { LoginForm } from "@/components/login/login-form"
 
 export default function LoginPage() {
   return (

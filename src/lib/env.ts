@@ -5,10 +5,8 @@
 
 export const env = {
   // Public (available in browser and server)
-  NEXT_PUBLIC_API_URL:
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
-  NEXT_PUBLIC_APP_NAME:
-    process.env.NEXT_PUBLIC_APP_NAME || "FilmLink",
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || "FilmLink",
 
   // Server-only (undefined in client)
   NODE_ENV: process.env.NODE_ENV || "development",

@@ -35,9 +35,7 @@ export async function apiClient<T>(
   const { params, body, timeoutMs = 15000, headers, ...customConfig } = options
 
   // 1. Build URL with query params
-  const baseUrl = endpoint.startsWith("http")
-    ? ""
-    : env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
+  const baseUrl = endpoint.startsWith("http") ? "" : env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
   const url = new URL(baseUrl ? `${baseUrl}/${endpoint.replace(/^\//, "")}` : endpoint)
 
   if (params) {
@@ -126,8 +124,7 @@ export async function apiClient<T>(
 
 /** Convenience HTTP methods */
 export const api = {
-  get: <T>(url: string, options?: FetchOptions) =>
-    apiClient<T>(url, { ...options, method: "GET" }),
+  get: <T>(url: string, options?: FetchOptions) => apiClient<T>(url, { ...options, method: "GET" }),
   post: <T>(url: string, body?: unknown, options?: FetchOptions) =>
     apiClient<T>(url, { ...options, method: "POST", body }),
   put: <T>(url: string, body?: unknown, options?: FetchOptions) =>

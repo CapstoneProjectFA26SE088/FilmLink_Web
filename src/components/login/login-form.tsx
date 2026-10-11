@@ -1,17 +1,11 @@
 "use client"
 
-import * as React from "react"
-import Link from "next/link"
 import { cn } from "cn"
-
+import Link from "next/link"
+import type * as React from "react"
+import { AppleIcon, GoogleIcon } from "@/components/login/social-auth-buttons"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Field,
   FieldDescription,
@@ -20,12 +14,8 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { AppleIcon, GoogleIcon } from "@/components/login/social-auth-buttons"
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
   }
@@ -38,9 +28,7 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Login with your Apple or Google account
-          </CardDescription>
+          <CardDescription>Login with your Apple or Google account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -97,10 +85,7 @@ export function LoginForm({
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link
-                    href="#"
-                    className="text-foreground underline underline-offset-4"
-                  >
+                  <Link href="#" className="text-foreground underline underline-offset-4">
                     Sign up
                   </Link>
                 </FieldDescription>

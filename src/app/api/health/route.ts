@@ -1,4 +1,4 @@
-import { successResponse, errorResponse } from "@/lib/api-response"
+import { errorResponse, successResponse } from "@/lib/api-response"
 
 /**
  * Health check endpoint

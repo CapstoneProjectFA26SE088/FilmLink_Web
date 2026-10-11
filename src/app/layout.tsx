@@ -1,37 +1,38 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ToastProvider } from "@/components/providers/toast-provider";
-import "./globals.css";
+import type { Metadata } from "next"
+import { Geist, Geist_Mono } from "next/font/google"
+import { ToastProvider } from "@/components/providers/toast-provider"
+import "./globals.css"
+import Header from "@/components/Header"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
+})
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
+})
 
 export const metadata: Metadata = {
   title: "FilmLink",
   description: "Web application platform",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <header>
+        <Header />
+      </header>
       <body className="min-h-full flex flex-col">
         {children}
         <ToastProvider />
       </body>
     </html>
-  );
+  )
 }
