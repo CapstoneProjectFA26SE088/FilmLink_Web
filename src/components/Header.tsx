@@ -153,6 +153,7 @@ function SearchBar() {
             ESC
           </kbd>
           <button
+            type="button"
             aria-label="Close search"
             className="text-zinc-500 hover:text-zinc-300 transition-colors"
             onClick={() => {

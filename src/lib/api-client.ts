@@ -73,7 +73,7 @@ export async function apiClient<T>(
 
     // Parse Response
     const contentType = response.headers.get("content-type")
-    const isJson = contentType && contentType.includes("application/json")
+    const isJson = contentType?.includes("application/json")
     const responseData = isJson ? await response.json() : await response.text()
 
     if (!response.ok) {
