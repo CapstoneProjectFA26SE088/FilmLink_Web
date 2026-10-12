@@ -48,6 +48,12 @@ export interface IAIFeature {
   accentColor?: string
 }
 
+export interface ILabPriceItem {
+  process: string
+  price: string
+  notes?: string
+}
+
 export interface IFilmLab {
   id: string
   name: string
@@ -61,6 +67,20 @@ export interface IFilmLab {
   acceptsMailIn: boolean
   featuredBadge?: string
   avatarUrl?: string
+  tagline?: string
+  description?: string
+  formats?: string[]
+  scanners?: string[]
+  priceRange?: string
+  phone?: string
+  email?: string
+  website?: string
+  instagram?: string
+  openingHours?: string
+  supportsPushPull?: boolean
+  returnsNegatives?: boolean
+  sellsFilm?: boolean
+  pricingSample?: ILabPriceItem[]
 }
 
 export interface ICommunityCard {

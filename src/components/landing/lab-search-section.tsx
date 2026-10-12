@@ -1,6 +1,7 @@
 "use client"
 
-import { Search, SlidersHorizontal, X } from "lucide-react"
+import { ArrowRight, Search, SlidersHorizontal, X } from "lucide-react"
+import Link from "next/link"
 import { useLabSearch } from "@/hooks/use-lab-search"
 import { cn } from "@/lib/utils"
 import type { FilmProcessType } from "@/types"
@@ -100,11 +101,23 @@ export function LabSearchSection() {
       {/* Filtered Labs Results Grid */}
       <div className="mt-10">
         {filteredLabs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredLabs.slice(0, 6).map((lab) => (
-              <LabCard key={lab.id} lab={lab} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredLabs.slice(0, 6).map((lab) => (
+                <LabCard key={lab.id} lab={lab} />
+              ))}
+            </div>
+
+            <div className="mt-10 flex justify-center">
+              <Link
+                href="/labs"
+                className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-semibold text-zinc-900 shadow-xs transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-sm group"
+              >
+                <span>Explore Full Directory & Filters ({totalCount}+ Verified Labs)</span>
+                <ArrowRight className="size-4 text-zinc-500 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </>
         ) : (
           <div className="rounded-2xl border border-dashed border-zinc-200 p-12 text-center bg-zinc-50/50">
             <SlidersHorizontal className="mx-auto size-8 text-zinc-400" />

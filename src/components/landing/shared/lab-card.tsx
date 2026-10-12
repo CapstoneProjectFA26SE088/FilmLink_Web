@@ -1,4 +1,5 @@
 import { Clock, Mail, MapPin, Star } from "lucide-react"
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import type { IFilmLab } from "@/types"
@@ -67,12 +68,12 @@ export function LabCard({ lab }: LabCardProps) {
           ))}
         </div>
 
-        <button
-          type="button"
+        <Link
+          href={`/labs?lab=${lab.id}`}
           className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors"
         >
           View Lab →
-        </button>
+        </Link>
       </div>
     </Card>
   )

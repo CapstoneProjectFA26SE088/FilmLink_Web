@@ -13,10 +13,10 @@ function HeaderLogo() {
   return (
     <Link
       href="/"
-      className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-lg"
+      className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-lg group"
       aria-label="FilmLink Home"
     >
-      <div className="relative size-8 overflow-hidden rounded-md">
+      <div className="relative size-8 overflow-hidden rounded-md transition-transform duration-200 group-hover:scale-105">
         <Image
           src="/mini_logo.png"
           alt="FilmLink Canister Logo"
@@ -35,9 +35,11 @@ function HeaderLogo() {
 
 function DesktopNavigation({
   activeSection,
+  pathname,
   onNavigate,
 }: {
   activeSection: string
+  pathname: string
   onNavigate: (href: string) => void
 }) {
   return (
@@ -47,21 +49,42 @@ function DesktopNavigation({
     >
       {NAV_ITEMS.map((item) => {
         const isActive = activeSection === item.id
+
         return (
-          <button
+          <Link
             key={item.id}
-            type="button"
-            onClick={() => onNavigate(item.href)}
+            href={item.href}
+            onClick={(e) => {
+              if (item.href === "/" && pathname === "/") {
+                e.preventDefault()
+                onNavigate(item.href)
+              } else if (item.href.includes("#") && pathname === "/") {
+                e.preventDefault()
+                onNavigate(item.href)
+              }
+            }}
             className={cn(
-              "rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer",
+              "relative rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer inline-flex items-center gap-1.5",
               isActive
                 ? "bg-zinc-900 text-white shadow-xs"
                 : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100/60"
             )}
             aria-current={isActive ? "page" : undefined}
           >
-            {item.label}
-          </button>
+            <span>{item.label}</span>
+            {item.id === "labs" && (
+              <span
+                className={cn(
+                  "text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider",
+                  isActive
+                    ? "bg-[#e24a4a] text-white"
+                    : "bg-rose-50 text-[#e24a4a] border border-rose-200/60"
+                )}
+              >
+                New
+              </span>
+            )}
+          </Link>
         )
       })}
     </nav>
@@ -73,7 +96,7 @@ function HeaderCTA() {
     <div className="flex items-center gap-1 sm:gap-2">
       <Link
         href="/login"
-        className="hidden sm:inline-flex text-xs font-semibold text-zinc-700 hover:text-zinc-950 px-2 py-1.5 transition-colors"
+        className="hidden sm:inline-flex text-xs font-semibold text-zinc-700 hover:text-zinc-950 px-2.5 py-1.5 transition-colors rounded-full hover:bg-zinc-100/80"
       >
         Sign In
       </Link>
@@ -90,13 +113,8 @@ function HeaderCTA() {
 
 export function Header() {
   const pathname = usePathname()
-  const {
-    activeSection,
-    isScrolled,
-    mobileMenuOpen,
-    setMobileMenuOpen,
-    scrollToSection,
-  } = useLandingNav()
+  const { activeSection, isScrolled, mobileMenuOpen, setMobileMenuOpen, handleNavigate } =
+    useLandingNav()
 
   // Distraction-free authentication pages
   if (pathname === "/login" || pathname === "/register") {
@@ -123,7 +141,8 @@ export function Header() {
         <div className="hidden md:flex items-center justify-center">
           <DesktopNavigation
             activeSection={activeSection}
-            onNavigate={scrollToSection}
+            pathname={pathname}
+            onNavigate={handleNavigate}
           />
         </div>
 
@@ -142,7 +161,10 @@ export function Header() {
                 <Menu className="size-4" />
               </SheetTrigger>
 
-              <SheetContent side="right" className="w-72 bg-white p-0 text-zinc-900 border-l border-zinc-200">
+              <SheetContent
+                side="right"
+                className="w-72 bg-white p-0 text-zinc-900 border-l border-zinc-200"
+              >
                 <SheetHeader className="border-b border-zinc-100 p-6 flex flex-row items-center justify-between">
                   <SheetTitle>
                     <HeaderLogo />
@@ -153,10 +175,19 @@ export function Header() {
                   {NAV_ITEMS.map((item) => {
                     const isActive = activeSection === item.id
                     return (
-                      <button
+                      <Link
                         key={item.id}
-                        type="button"
-                        onClick={() => scrollToSection(item.href)}
+                        href={item.href}
+                        onClick={(e) => {
+                          setMobileMenuOpen(false)
+                          if (item.href === "/" && pathname === "/") {
+                            e.preventDefault()
+                            handleNavigate(item.href)
+                          } else if (item.href.includes("#") && pathname === "/") {
+                            e.preventDefault()
+                            handleNavigate(item.href)
+                          }
+                        }}
                         className={cn(
                           "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition-colors text-left",
                           isActive
@@ -164,9 +195,16 @@ export function Header() {
                             : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                         )}
                       >
-                        <span>{item.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span>{item.label}</span>
+                          {item.id === "labs" && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-[#e24a4a]">
+                              Directory
+                            </span>
+                          )}
+                        </div>
                         {isActive && <span className="size-1.5 rounded-full bg-rose-400" />}
-                      </button>
+                      </Link>
                     )
                   })}
                 </nav>
