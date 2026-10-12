@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "FilmLink",
-  description: "Web application platform",
+  title: "FilmLink | From Film Roll to Digital Memory",
+  description:
+    "The all-in-one platform connecting film photographers, labs, and enthusiasts worldwide. Powered by AI.",
 }
 
 export default function RootLayout({
@@ -25,12 +26,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <header>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
+    >
+      <body className="min-h-full flex flex-col bg-white text-zinc-900 antialiased selection:bg-rose-100 selection:text-rose-900">
         <Header />
-      </header>
-      <body className="min-h-full flex flex-col">
-        {children}
+        <main className="flex-1">{children}</main>
         <ToastProvider />
       </body>
     </html>
