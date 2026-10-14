@@ -1,71 +1,15 @@
 import {
-  Clapperboard,
   Heart,
-  Home,
-  LayoutGrid,
   MessageCircle,
   MoreHorizontal,
   Search as SearchIcon,
-  Send,
-  Settings,
   UserRound,
 } from "lucide-react"
-import Link from "next/link"
+import { SocialPageLayout } from "@/components/social/social-page-layout"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-
-function Sidebar() {
-  return (
-    <aside className="group/sidebar fixed inset-y-0 left-0 z-40 flex w-[72px] flex-col items-start justify-between overflow-hidden bg-white px-3 py-6 transition-[width] duration-200 ease-out hover:w-[245px] focus-within:w-[245px]">
-      <Link
-        aria-label="FilmLink feed"
-        className="flex h-14 w-[220px] shrink-0 items-center gap-4 rounded-xl px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        href="/feed"
-      >
-        <span className="flex size-6 shrink-0 items-center justify-center font-serif text-[28px] leading-none tracking-[-0.08em]">
-          fl.
-        </span>
-      </Link>
-
-      <nav aria-label="Điều hướng chính" className="flex w-[220px] flex-col gap-1 py-4">
-        <Link
-          aria-current="page"
-          className="flex h-14 shrink-0 items-center gap-4 rounded-xl px-3 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          href="/feed"
-        >
-          <Home aria-hidden="true" className="size-6 shrink-0" />
-          <span className="whitespace-nowrap text-sm font-semibold leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
-            Home
-          </span>
-        </Link>
-        <Link
-          className="flex h-14 shrink-0 items-center gap-4 rounded-xl px-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          href="#search"
-        >
-          <SearchIcon aria-hidden="true" className="size-6 shrink-0" />
-          <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
-            Search
-          </span>
-        </Link>
-      </nav>
-
-      <Button
-        aria-label="Settings"
-        className="h-14 w-[220px] justify-start gap-4 rounded-xl px-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring group-hover/sidebar:pl-3 group-focus-within/sidebar:pl-3 [&_svg:not([class*='size-'])]:size-6 disabled:opacity-100"
-        variant="ghost"
-        disabled
-      >
-        <Settings aria-hidden="true" />
-        <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
-          Settings
-        </span>
-      </Button>
-    </aside>
-  )
-}
 
 function FeedSearch() {
   return (
@@ -175,80 +119,24 @@ function PostCard() {
   )
 }
 
-function SuggestedLabs() {
-  return (
-    <Card className="gap-7 rounded-[20px] border-border p-5 shadow-none ring-1 ring-foreground/5">
-      <CardHeader className="flex-row items-center justify-between gap-3 p-0">
-        <CardTitle className="text-[15px] font-semibold leading-[21px]">Suggest Film Lab</CardTitle>
-        <Clapperboard aria-hidden="true" className="text-muted-foreground" />
-      </CardHeader>
-      <CardContent className="p-0">
-        <Empty className="gap-3 border-0 p-0">
-          <EmptyMedia
-            className="mb-0 flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground"
-            variant="icon"
-          >
-            <LayoutGrid aria-hidden="true" />
-          </EmptyMedia>
-          <EmptyHeader className="gap-1">
-            <EmptyTitle className="text-xs font-semibold leading-[17px]">
-              Nothing to suggest yet
-            </EmptyTitle>
-            <EmptyDescription className="text-center text-xs leading-[17px]">
-              New suggestions will find their way here.
-            </EmptyDescription>
-          </EmptyHeader>
-          <p className="text-center text-xs leading-[17px] text-muted-foreground">
-            A little inspiration, in time.
-          </p>
-        </Empty>
-      </CardContent>
-    </Card>
-  )
-}
-
-function Chatbot() {
-  return (
-    <div
-      aria-label="Vị trí nút chatbot"
-      className="fixed right-5 bottom-[84px] z-20 inline-flex h-12 items-center gap-3 rounded-full border border-border bg-background px-5 text-[15px] font-semibold leading-[21px] text-foreground shadow-sm lg:bottom-6"
-      role="img"
-    >
-      <Send aria-hidden="true" />
-      <span>Chatbot</span>
-    </div>
-  )
-}
-
 export default function FeedSection() {
   return (
-    <div className="feed-font-stack min-h-dvh bg-background pl-[72px] text-foreground">
-      <Sidebar />
-
-      <div className="mx-auto flex min-h-dvh w-full max-w-[1088px] justify-center px-4 pt-0 pb-28 sm:px-6 lg:px-6 lg:pb-8">
-        <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,640px)_320px] xl:gap-16">
-          <section aria-labelledby="feed-title" className="min-w-0">
-            <header className="flex h-[72px] items-center px-1">
-              <h1 className="text-xl font-semibold leading-[25px] tracking-tight" id="feed-title">
-                For you
-              </h1>
-            </header>
-            <div className="flex flex-col gap-4">
-              <FeedSearch />
-              <Post />
-              <PostCard />
-            </div>
-            <p className="pt-6 text-center text-xs text-muted-foreground">
-              A space for conversations, not distractions.
-            </p>
-          </section>
-
-          <aside aria-label="Film Lab gợi ý" className="hidden pt-10 xl:block">
-            <SuggestedLabs />
-          </aside>
+    <SocialPageLayout activePage="feed">
+      <section aria-labelledby="feed-title" className="w-full max-w-[640px]">
+        <header className="flex h-[72px] items-center px-1">
+          <h1 className="text-xl font-semibold leading-[25px] tracking-tight" id="feed-title">
+            For you
+          </h1>
+        </header>
+        <div className="flex flex-col gap-4">
+          <FeedSearch />
+          <Post />
+          <PostCard />
         </div>
-      </div>
-      <Chatbot />
-    </div>
+        <p className="pt-6 text-center text-xs text-muted-foreground">
+          A space for conversations, not distractions.
+        </p>
+      </section>
+    </SocialPageLayout>
   )
 }
