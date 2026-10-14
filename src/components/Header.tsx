@@ -103,7 +103,9 @@ export function Header() {
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/feed" ||
-    pathname.startsWith("/feed/")
+    pathname.startsWith("/feed/") ||
+    pathname === "/search" ||
+    pathname.startsWith("/search/")
   ) {
     return null
   }
