@@ -99,7 +99,12 @@ export function Header() {
   } = useLandingNav()
 
   // Distraction-free authentication pages
-  if (pathname === "/login" || pathname === "/register") {
+  if (
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/feed" ||
+    pathname.startsWith("/feed/")
+  ) {
     return null
   }
 
