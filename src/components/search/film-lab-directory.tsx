@@ -1,9 +1,8 @@
 "use client"
 
 import { ArrowLeft, Check, Clock3, MapPin, Star, X } from "lucide-react"
-import { useState, type FormEvent } from "react"
+import { type FormEvent, useState } from "react"
 import { toast } from "react-toastify"
-import type { IFilmLab } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,9 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { saveCustomerOrder } from "@/lib/customer-orders"
 import { VERIFIED_FILM_LABS } from "@/lib/landing-data"
+import type { IFilmLab } from "@/types"
 
 type BookingStage = "details" | "order" | "confirmation"
 
@@ -489,8 +490,8 @@ function OrderConfirmation({ lab, onClose }: { lab: IFilmLab; onClose: () => voi
       <div>
         <DialogTitle className="text-lg font-semibold">Booking details are ready</DialogTitle>
         <DialogDescription className="mt-2 max-w-md">
-          A booking preview for {lab.name} has been prepared. It has not been sent because the
-          project is not connected to a lab booking API.
+          The order for {lab.name} is now available in Customer Orders on this browser. It has not
+          been synced to a server.
         </DialogDescription>
       </div>
       <Button onClick={onClose} type="button">
@@ -528,10 +529,19 @@ export function FilmLabDirectory() {
       toast.error(message)
       return
     }
+    if (!selectedLab) return
+
+    saveCustomerOrder({
+      id: crypto.randomUUID(),
+      labId: selectedLab.id,
+      labName: selectedLab.name,
+      ...form,
+      createdAt: new Date().toISOString(),
+      status: "pending",
+      workflowStage: 0,
+    })
     setStage("confirmation")
-    toast.success(
-      "Booking details are ready. The request has not been sent because no API is connected."
-    )
+    toast.success("Order added to Customer Orders on this browser.")
   }
 
   function closeDialog() {

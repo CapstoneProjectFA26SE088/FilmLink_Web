@@ -3,11 +3,16 @@ import { SocialChatbot } from "@/components/social/social-chatbot"
 import { SocialSidebar } from "@/components/social/social-sidebar"
 
 type SocialPageLayoutProps = {
-  activePage: "feed" | "search"
+  activePage: "feed" | "search" | "film-lab-owner" | "customer-orders"
+  showChatbot?: boolean
   children: ReactNode
 }
 
-export function SocialPageLayout({ activePage, children }: SocialPageLayoutProps) {
+export function SocialPageLayout({
+  activePage,
+  showChatbot = true,
+  children,
+}: SocialPageLayoutProps) {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <SocialSidebar activePage={activePage} />
@@ -16,7 +21,7 @@ export function SocialPageLayout({ activePage, children }: SocialPageLayoutProps
           {children}
         </div>
       </div>
-      <SocialChatbot />
+      {showChatbot && <SocialChatbot />}
     </div>
   )
 }
