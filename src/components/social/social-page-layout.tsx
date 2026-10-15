@@ -9,7 +9,7 @@ type SocialPageLayoutProps = {
 
 export function SocialPageLayout({ activePage, children }: SocialPageLayoutProps) {
   return (
-    <div className="feed-font-stack min-h-dvh bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground">
       <SocialSidebar activePage={activePage} />
       <div className="min-h-dvh pl-[72px] xl:pl-0">
         <div className="mx-auto flex min-h-dvh w-full max-w-[1088px] justify-center px-4 pt-0 pb-28 sm:px-6 lg:px-6 lg:pb-8">

@@ -14,12 +14,12 @@ export function SocialSidebar({ activePage }: SocialSidebarProps) {
         className="flex h-14 w-[220px] shrink-0 items-center gap-4 rounded-xl px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         href="/feed"
       >
-        <span className="flex size-6 shrink-0 items-center justify-center font-serif text-[28px] leading-none tracking-[-0.08em]">
+        <span className="flex size-6 shrink-0 items-center justify-center font-sans text-[28px] leading-none tracking-[-0.08em]">
           fl.
         </span>
       </Link>
 
-      <nav aria-label="Điều hướng chính" className="flex w-[220px] flex-col gap-1 py-4">
+      <nav aria-label="Main navigation" className="flex w-[220px] flex-col gap-1 py-4">
         <Link
           aria-current={activePage === "feed" ? "page" : undefined}
           className={`flex h-14 shrink-0 items-center gap-4 rounded-xl px-3 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${activePage === "feed" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
