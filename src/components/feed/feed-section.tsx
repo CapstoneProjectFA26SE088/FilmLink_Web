@@ -3,9 +3,10 @@ import {
   MessageCircle,
   MoreHorizontal,
   Search as SearchIcon,
+  Send,
   UserRound,
 } from "lucide-react"
-import { SocialPageLayout } from "@/components/social/social-page-layout"
+import { SocialSidebar } from "@/components/social/social-sidebar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -119,24 +120,47 @@ function PostCard() {
   )
 }
 
-export default function FeedSection() {
+function Chatbot() {
   return (
-    <SocialPageLayout activePage="feed">
-      <section aria-labelledby="feed-title" className="w-full max-w-[640px]">
-        <header className="flex h-[72px] items-center px-1">
-          <h1 className="text-xl font-semibold leading-[25px] tracking-tight" id="feed-title">
-            For you
-          </h1>
-        </header>
-        <div className="flex flex-col gap-4">
-          <FeedSearch />
-          <Post />
-          <PostCard />
+    <div
+      aria-label="Vị trí nút chatbot"
+      className="fixed right-5 bottom-[84px] z-20 inline-flex h-12 items-center gap-3 rounded-full border border-border bg-background px-5 text-[15px] font-semibold leading-[21px] text-foreground shadow-sm lg:bottom-6"
+      role="img"
+    >
+      <Send aria-hidden="true" />
+      <span>Chatbot</span>
+    </div>
+  )
+}
+
+export default function FeedLayout() {
+  return (
+    <div className="feed-font-stack min-h-dvh bg-background pl-[72px] text-foreground">
+      <SocialSidebar activePage="feed" />
+
+      <div className="mx-auto flex min-h-dvh w-full max-w-[1088px] justify-center px-4 pt-0 pb-28 sm:px-6 lg:px-6 lg:pb-8">
+        <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,640px)_320px] xl:gap-16">
+          <section
+            aria-labelledby="feed-title"
+            className="mx-auto w-full max-w-[640px] min-w-0 xl:mx-0"
+          >
+            <header className="flex h-[72px] items-center px-1">
+              <h1 className="text-xl font-semibold leading-[25px] tracking-tight" id="feed-title">
+                For you
+              </h1>
+            </header>
+            <div className="flex flex-col gap-4">
+              <FeedSearch />
+              <Post />
+              <PostCard />
+            </div>
+            <p className="pt-6 text-center text-xs text-muted-foreground">
+              A space for conversations, not distractions.
+            </p>
+          </section>
         </div>
-        <p className="pt-6 text-center text-xs text-muted-foreground">
-          A space for conversations, not distractions.
-        </p>
-      </section>
-    </SocialPageLayout>
+      </div>
+      <Chatbot />
+    </div>
   )
 }
