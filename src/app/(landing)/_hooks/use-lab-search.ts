@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { VERIFIED_FILM_LABS } from "@/lib/landing-data"
+import { VERIFIED_FILM_LABS } from "@/lib/film-labs"
 import type { FilmProcessType, IFilmLab, ILabSearchState } from "@/types"
 
 export interface UseLabSearchOptions {

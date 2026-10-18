@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { RegisterForm } from "@/components/auth"
+import { RegisterForm } from "./_components/register-form"
 
 export const metadata: Metadata = {
   title: "Create Account | FilmFlow",

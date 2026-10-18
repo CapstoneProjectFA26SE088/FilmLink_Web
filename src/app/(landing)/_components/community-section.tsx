@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
-import { COMMUNITY_FEATURES } from "@/lib/landing-data"
+import { COMMUNITY_FEATURES } from "../_data/landing-data"
 import { SectionHeading } from "./shared/section-heading"
 
 export function CommunitySection() {

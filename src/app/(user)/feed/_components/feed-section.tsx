@@ -1,4 +1,3 @@
-import { SocialChatbot } from "@/components/social/social-chatbot"
 import { CreatePostBox } from "./create-post-box"
 import { FeedSearch } from "./feed-search"
 import { PostCard } from "./post-card"
@@ -21,7 +20,6 @@ export default function FeedSection() {
           A space for conversations, not distractions.
         </p>
       </section>
-      <SocialChatbot />
     </div>
   )
 }

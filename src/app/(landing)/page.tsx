@@ -1,14 +1,12 @@
-import {
-  AIFeaturesSection,
-  BannerShowcase,
-  CommunitySection,
-  CTASection,
-  FooterSection,
-  HeroSection,
-  LabSearchSection,
-  StatsSection,
-  WorkflowSection,
-} from "@/components/landing"
+import { AIFeaturesSection } from "./_components/ai-features-section"
+import { BannerShowcase } from "./_components/banner-showcase"
+import { CommunitySection } from "./_components/community-section"
+import { CTASection } from "./_components/cta-section"
+import { FooterSection } from "./_components/footer-section"
+import { HeroSection } from "./_components/hero-section"
+import { LabSearchSection } from "./_components/lab-search-section"
+import { StatsSection } from "./_components/stats-section"
+import { WorkflowSection } from "./_components/workflow-section"
 
 export default function HomePage() {
   return (

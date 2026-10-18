@@ -1,4 +1,4 @@
-import { WORKFLOW_STEPS } from "@/lib/landing-data"
+import { WORKFLOW_STEPS } from "../_data/landing-data"
 import { SectionHeading } from "./shared/section-heading"
 
 export function WorkflowSection() {

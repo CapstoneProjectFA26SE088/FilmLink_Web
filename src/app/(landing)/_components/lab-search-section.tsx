@@ -1,9 +1,9 @@
 "use client"
 
 import { Search, SlidersHorizontal, X } from "lucide-react"
-import { useLabSearch } from "@/hooks/use-lab-search"
 import { cn } from "@/lib/utils"
 import type { FilmProcessType } from "@/types"
+import { useLabSearch } from "../_hooks/use-lab-search"
 import { LabCard } from "./shared/lab-card"
 import { SectionHeading } from "./shared/section-heading"
 

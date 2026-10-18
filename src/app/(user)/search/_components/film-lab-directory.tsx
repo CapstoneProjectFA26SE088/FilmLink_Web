@@ -27,7 +27,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { saveCustomerOrder } from "@/lib/customer-orders"
-import { VERIFIED_FILM_LABS } from "@/lib/landing-data"
+import { VERIFIED_FILM_LABS } from "@/lib/film-labs"
 import type { IFilmLab } from "@/types"
 
 type BookingStage = "details" | "order" | "confirmation"

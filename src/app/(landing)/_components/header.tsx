@@ -5,9 +5,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useLandingNav } from "@/hooks/use-landing-nav"
-import { NAV_ITEMS } from "@/lib/landing-data"
 import { cn } from "@/lib/utils"
+import { NAV_ITEMS } from "../_data/landing-data"
+import { useLandingNav } from "../_hooks/use-landing-nav"
 
 function HeaderLogo() {
   return (

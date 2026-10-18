@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { AI_FEATURES } from "@/lib/landing-data"
+import { AI_FEATURES } from "../_data/landing-data"
 import { SectionHeading } from "./shared/section-heading"
 
 export function AIFeaturesSection() {

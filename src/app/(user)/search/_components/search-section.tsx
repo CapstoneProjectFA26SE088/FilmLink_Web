@@ -1,5 +1,4 @@
 import { Funnel, Search as SearchIcon } from "lucide-react"
-import { SocialChatbot } from "@/components/social/social-chatbot"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FilmLabDirectory } from "./film-lab-directory"
@@ -33,25 +32,22 @@ function SearchBar() {
 
 export default function SearchSection() {
   return (
-    <>
-      <section
-        aria-label="Find a film lab"
-        className="mx-auto flex w-full max-w-[1088px] min-w-0 flex-col gap-4"
-      >
-        <header className="flex h-[72px] w-full items-center justify-center">
-          <div className="w-full max-w-[640px]">
-            <SearchBar />
-          </div>
-        </header>
-        <div className="mx-auto w-full max-w-[640px]">
-          <SuggestedSearchChips />
+    <section
+      aria-label="Find a film lab"
+      className="mx-auto flex w-full max-w-[1088px] min-w-0 flex-col gap-4"
+    >
+      <header className="flex h-[72px] w-full items-center justify-center">
+        <div className="w-full max-w-[640px]">
+          <SearchBar />
         </div>
-        <FilmLabDirectory />
-        <p className="pt-2 text-center text-xs text-muted-foreground">
-          A space for conversations, not distractions.
-        </p>
-      </section>
-      <SocialChatbot />
-    </>
+      </header>
+      <div className="mx-auto w-full max-w-[640px]">
+        <SuggestedSearchChips />
+      </div>
+      <FilmLabDirectory />
+      <p className="pt-2 text-center text-xs text-muted-foreground">
+        A space for conversations, not distractions.
+      </p>
+    </section>
   )
 }

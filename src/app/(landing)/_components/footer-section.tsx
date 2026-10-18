@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { FOOTER_SECTIONS } from "@/lib/landing-data"
+import { FOOTER_SECTIONS } from "../_data/landing-data"
 
 export function FooterSection() {
   return (

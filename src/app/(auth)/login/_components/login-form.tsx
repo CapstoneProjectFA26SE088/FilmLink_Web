@@ -2,10 +2,10 @@
 
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
-import { useLoginForm } from "@/hooks/use-login-form"
-import { AuthCard } from "./auth-card"
-import { AuthLogo } from "./auth-logo"
-import { GoogleButton } from "./google-button"
+import { AuthCard } from "../../_components/auth-card"
+import { AuthLogo } from "../../_components/auth-logo"
+import { GoogleButton } from "../../_components/google-button"
+import { useLoginForm } from "../_hooks/use-login-form"
 
 export function LoginForm() {
   const {

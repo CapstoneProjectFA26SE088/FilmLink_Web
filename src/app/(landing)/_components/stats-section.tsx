@@ -1,4 +1,4 @@
-import { STAT_METRICS } from "@/lib/landing-data"
+import { STAT_METRICS } from "../_data/landing-data"
 
 export function StatsSection() {
   return (

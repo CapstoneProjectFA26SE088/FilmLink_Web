@@ -2,11 +2,11 @@
 
 import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-react"
 import Link from "next/link"
-import { useRegisterForm } from "@/hooks/use-register-form"
 import { cn } from "@/lib/utils"
-import { AuthCard } from "./auth-card"
-import { AuthLogo } from "./auth-logo"
-import { GoogleButton } from "./google-button"
+import { AuthCard } from "../../_components/auth-card"
+import { AuthLogo } from "../../_components/auth-logo"
+import { GoogleButton } from "../../_components/google-button"
+import { useRegisterForm } from "../_hooks/use-register-form"
 
 export function RegisterForm() {
   const {
