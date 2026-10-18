@@ -1,4 +1,4 @@
-import { CustomerOrders } from "@/components/film-lab-owner/customer-orders"
+import { CustomerOrders } from "./_components/customer-orders"
 
 export default function CustomerOrdersPage() {
   return <CustomerOrders />

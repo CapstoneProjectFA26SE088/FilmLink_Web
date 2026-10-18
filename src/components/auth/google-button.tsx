@@ -3,16 +3,11 @@
 import type React from "react"
 import { cn } from "@/lib/utils"
 
-export interface GoogleButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface GoogleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label?: string
 }
 
-export function GoogleButton({
-  label = "Google",
-  className,
-  ...props
-}: GoogleButtonProps) {
+export function GoogleButton({ label = "Google", className, ...props }: GoogleButtonProps) {
   return (
     <button
       type="button"

@@ -36,10 +36,10 @@ export function RegisterForm() {
       {/* Main Register Form */}
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         {/* Account Type Segmented Switch */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-bold tracking-wider text-zinc-700 uppercase">
+        <fieldset className="flex flex-col gap-1.5">
+          <legend className="text-[11px] font-bold tracking-wider text-zinc-700 uppercase">
             Account Type
-          </label>
+          </legend>
           <div className="grid grid-cols-2 rounded-xl bg-zinc-100 p-1">
             <button
               type="button"
@@ -66,7 +66,7 @@ export function RegisterForm() {
               Film Lab Owner
             </button>
           </div>
-        </div>
+        </fieldset>
 
         {/* Full Name Field */}
         <div className="flex flex-col gap-1.5">
@@ -145,11 +145,7 @@ export function RegisterForm() {
               aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-3 text-zinc-400 hover:text-zinc-600 transition-colors"
             >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
           {errors.password && (
@@ -182,17 +178,11 @@ export function RegisterForm() {
               aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               className="absolute right-3 text-zinc-400 hover:text-zinc-600 transition-colors"
             >
-              {showConfirmPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
+              {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
           {errors.confirmPassword && (
-            <span className="text-xs text-rose-500 font-medium">
-              {errors.confirmPassword}
-            </span>
+            <span className="text-xs text-rose-500 font-medium">{errors.confirmPassword}</span>
           )}
         </div>
 
@@ -227,9 +217,7 @@ export function RegisterForm() {
           </label>
         </div>
         {errors.agreeToTerms && (
-          <span className="text-xs text-rose-500 font-medium">
-            {errors.agreeToTerms}
-          </span>
+          <span className="text-xs text-rose-500 font-medium">{errors.agreeToTerms}</span>
         )}
 
         {/* Submit Button */}
@@ -256,10 +244,7 @@ export function RegisterForm() {
         {/* Footer Link */}
         <p className="mt-4 text-center text-xs text-zinc-500">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-zinc-900 hover:underline"
-          >
+          <Link href="/login" className="font-semibold text-zinc-900 hover:underline">
             Sign In
           </Link>
         </p>

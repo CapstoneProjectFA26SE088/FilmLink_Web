@@ -10,7 +10,6 @@ import {
   Upload,
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { SocialPageLayout } from "@/components/social/social-page-layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -354,7 +353,7 @@ export function CustomerOrders() {
   const activeStep = workflowSteps[dialogStage] ?? workflowSteps[0]
 
   return (
-    <SocialPageLayout activePage="customer-orders" showChatbot={false}>
+    <>
       <section aria-labelledby="customer-orders-title" className="w-full max-w-[640px] pb-12">
         <header className="flex min-h-[72px] items-center justify-between gap-3 px-1">
           <div>
@@ -477,6 +476,6 @@ export function CustomerOrders() {
           </DialogContent>
         )}
       </Dialog>
-    </SocialPageLayout>
+    </>
   )
 }

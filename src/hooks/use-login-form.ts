@@ -18,10 +18,7 @@ export function useLoginForm(options: UseLoginFormOptions = {}) {
   const [errors, setErrors] = useState<IAuthFormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleChange = (
-    field: keyof ILoginFormData,
-    value: string | boolean
-  ) => {
+  const handleChange = (field: keyof ILoginFormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field as keyof IAuthFormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))

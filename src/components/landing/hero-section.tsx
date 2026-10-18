@@ -36,8 +36,8 @@ export function HeroSection() {
 
         {/* Subtitle */}
         <p className="mt-6 max-w-2xl text-base sm:text-lg md:text-xl text-zinc-600 font-normal leading-relaxed">
-          FilmLink is the all-in-one platform connecting film photographers, labs,
-          and enthusiasts worldwide. Powered by AI.
+          FilmLink is the all-in-one platform connecting film photographers, labs, and enthusiasts
+          worldwide. Powered by AI.
         </p>
 
         {/* Action Buttons */}

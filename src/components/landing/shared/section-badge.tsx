@@ -18,12 +18,9 @@ export function SectionBadge({
     <div
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wider uppercase transition-colors",
-        variant === "coral" &&
-          "bg-rose-50 text-rose-600 border border-rose-200/60 shadow-xs",
-        variant === "dark" &&
-          "bg-zinc-800/80 text-rose-400 border border-zinc-700/60",
-        variant === "outline" &&
-          "bg-transparent text-rose-600 border border-rose-300",
+        variant === "coral" && "bg-rose-50 text-rose-600 border border-rose-200/60 shadow-xs",
+        variant === "dark" && "bg-zinc-800/80 text-rose-400 border border-zinc-700/60",
+        variant === "outline" && "bg-transparent text-rose-600 border border-rose-300",
         className
       )}
     >

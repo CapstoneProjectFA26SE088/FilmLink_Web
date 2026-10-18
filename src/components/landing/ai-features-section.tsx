@@ -39,9 +39,7 @@ export function AIFeaturesSection() {
                 </p>
 
                 {/* Description */}
-                <p className="mt-3 text-sm text-zinc-600 leading-relaxed">
-                  {feature.description}
-                </p>
+                <p className="mt-3 text-sm text-zinc-600 leading-relaxed">{feature.description}</p>
               </div>
 
               {/* Supported tags */}

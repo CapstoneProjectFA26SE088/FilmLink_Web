@@ -1,55 +1,43 @@
+"use client"
+
 import {
   Banknote,
   Building2,
+  CircleHelp,
   ClipboardList,
   GalleryVerticalEnd,
   Home,
+  type LucideIcon,
   MapPin,
   Package,
-  Search as SearchIcon,
+  Search,
   Settings,
   Users,
 } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { LAB_OWNER_NAV, type NavRole, USER_NAV } from "@/config/navigation"
 
-type SocialSidebarProps = {
-  activePage: "feed" | "search" | "film-lab-owner" | "customer-orders"
+const NAV_ICONS: Record<string, LucideIcon> = {
+  banknote: Banknote,
+  building: Building2,
+  "clipboard-list": ClipboardList,
+  "gallery-vertical-end": GalleryVerticalEnd,
+  home: Home,
+  "map-pin": MapPin,
+  package: Package,
+  search: Search,
+  users: Users,
 }
 
-export function SocialSidebar({ activePage }: SocialSidebarProps) {
-  const navigationItems =
-    activePage === "film-lab-owner" || activePage === "customer-orders"
-      ? [
-          {
-            label: "Dashboard",
-            href: "/film-lab-owner",
-            page: "film-lab-owner" as const,
-            Icon: Building2,
-          },
-          {
-            label: "Customer Orders",
-            href: "/film-lab-owner/customer-orders",
-            page: "customer-orders" as const,
-            Icon: ClipboardList,
-          },
-          { label: "Packages", Icon: Package },
-          { label: "Lab Profile", Icon: MapPin },
-          { label: "Consignment Feed", Icon: GalleryVerticalEnd },
-          { label: "Customers", Icon: Users },
-          { label: "Revenue", Icon: Banknote },
-          { label: "Reports", Icon: ClipboardList },
-        ]
-      : [
-          { label: "Home", href: "/feed", page: "feed" as const, Icon: Home, disabled: false },
-          {
-            label: "Search",
-            href: "/search",
-            page: "search" as const,
-            Icon: SearchIcon,
-            disabled: false,
-          },
-        ]
+type MainSidebarProps = {
+  role: NavRole
+}
+
+export function MainSidebar({ role }: MainSidebarProps) {
+  const pathname = usePathname()
+  const items = role === "lab-owner" ? LAB_OWNER_NAV : USER_NAV
 
   return (
     <aside className="group/sidebar fixed inset-y-0 left-0 z-40 flex w-[72px] flex-col items-start justify-between overflow-hidden bg-white px-3 py-6 transition-[width] duration-200 ease-out hover:w-[245px] focus-within:w-[245px]">
@@ -67,8 +55,9 @@ export function SocialSidebar({ activePage }: SocialSidebarProps) {
         aria-label="Main navigation"
         className="my-auto flex max-h-[calc(100dvh-12rem)] w-[220px] flex-col gap-1 overflow-y-auto py-4"
       >
-        {navigationItems.map(({ label, href, page, Icon }) => {
-          const isActive = activePage === page
+        {items.map(({ label, href, icon }) => {
+          const isActive = href ? pathname === href || pathname.startsWith(`${href}/`) : false
+          const Icon = NAV_ICONS[icon] ?? CircleHelp
           const content = (
             <>
               <Icon aria-hidden="true" className="size-6 shrink-0" />
@@ -99,7 +88,7 @@ export function SocialSidebar({ activePage }: SocialSidebarProps) {
               aria-current={isActive ? "page" : undefined}
               className={`flex h-14 shrink-0 items-center gap-4 rounded-xl px-3 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               href={href}
-              key={page}
+              key={href}
             >
               {content}
             </Link>
@@ -110,8 +99,8 @@ export function SocialSidebar({ activePage }: SocialSidebarProps) {
       <Button
         aria-label="Settings"
         className="h-14 w-[220px] justify-start gap-4 rounded-xl px-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&_svg:not([class*='size-'])]:size-6 disabled:opacity-100"
-        variant="ghost"
         disabled
+        variant="ghost"
       >
         <Settings aria-hidden="true" />
         <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">

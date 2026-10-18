@@ -22,10 +22,7 @@ export function useRegisterForm(options: UseRegisterFormOptions = {}) {
   const [errors, setErrors] = useState<IAuthFormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleChange = (
-    field: keyof IRegisterFormData,
-    value: string | boolean | AccountType
-  ) => {
+  const handleChange = (field: keyof IRegisterFormData, value: string | boolean | AccountType) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field as keyof IAuthFormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))

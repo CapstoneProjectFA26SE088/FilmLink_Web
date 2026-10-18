@@ -7,17 +7,10 @@ import type { FilmProcessType } from "@/types"
 import { LabCard } from "./shared/lab-card"
 import { SectionHeading } from "./shared/section-heading"
 
-const PROCESS_OPTIONS: FilmProcessType[] = [
-  "All",
-  "Color (C-41)",
-  "B&W",
-  "ECN-2",
-  "Slide (E-6)",
-]
+const PROCESS_OPTIONS: FilmProcessType[] = ["All", "Color (C-41)", "B&W", "ECN-2", "Slide (E-6)"]
 
 export function LabSearchSection() {
-  const { filters, filteredLabs, totalCount, setQuery, setProcess, resetFilters } =
-    useLabSearch()
+  const { filters, filteredLabs, setQuery, setProcess, resetFilters } = useLabSearch()
 
   return (
     <section
@@ -108,9 +101,7 @@ export function LabSearchSection() {
         ) : (
           <div className="rounded-2xl border border-dashed border-zinc-200 p-12 text-center bg-zinc-50/50">
             <SlidersHorizontal className="mx-auto size-8 text-zinc-400" />
-            <h4 className="mt-3 text-base font-bold text-zinc-800">
-              No matching film labs found
-            </h4>
+            <h4 className="mt-3 text-base font-bold text-zinc-800">No matching film labs found</h4>
             <p className="mt-1 text-xs text-zinc-500">
               Try adjusting your search keywords or choosing "All" process types.
             </p>

@@ -90,13 +90,8 @@ function HeaderCTA() {
 
 export function Header() {
   const pathname = usePathname()
-  const {
-    activeSection,
-    isScrolled,
-    mobileMenuOpen,
-    setMobileMenuOpen,
-    scrollToSection,
-  } = useLandingNav()
+  const { activeSection, isScrolled, mobileMenuOpen, setMobileMenuOpen, scrollToSection } =
+    useLandingNav()
 
   // Distraction-free authentication pages
   if (
@@ -130,10 +125,7 @@ export function Header() {
 
         {/* Center: Desktop Nav Pills */}
         <div className="hidden md:flex items-center justify-center">
-          <DesktopNavigation
-            activeSection={activeSection}
-            onNavigate={scrollToSection}
-          />
+          <DesktopNavigation activeSection={activeSection} onNavigate={scrollToSection} />
         </div>
 
         {/* Right: CTA & Mobile Hamburger */}
@@ -151,7 +143,10 @@ export function Header() {
                 <Menu className="size-4" />
               </SheetTrigger>
 
-              <SheetContent side="right" className="w-72 bg-white p-0 text-zinc-900 border-l border-zinc-200">
+              <SheetContent
+                side="right"
+                className="w-72 bg-white p-0 text-zinc-900 border-l border-zinc-200"
+              >
                 <SheetHeader className="border-b border-zinc-100 p-6 flex flex-row items-center justify-between">
                   <SheetTitle>
                     <HeaderLogo />

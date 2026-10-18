@@ -35,9 +35,7 @@ export function CommunitySection() {
                   {item.title}
                 </h3>
 
-                <p className="mt-2 text-xs text-zinc-600 leading-relaxed">
-                  {item.description}
-                </p>
+                <p className="mt-2 text-xs text-zinc-600 leading-relaxed">{item.description}</p>
               </div>
 
               <div className="mt-5 pt-4 border-t border-zinc-100 flex items-center justify-between">

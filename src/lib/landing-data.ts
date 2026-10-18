@@ -2,7 +2,6 @@ import {
   Archive,
   BookOpen,
   Camera,
-  Eye,
   FlaskConical,
   Package,
   Palette,
@@ -37,7 +36,8 @@ export const WORKFLOW_STEPS: IWorkflowStep[] = [
     stepNumber: 1,
     title: "Shoot",
     subtitle: "Capture analog moments",
-    description: "Load your favorite 35mm or 120 roll and frame memories with authentic physical grain.",
+    description:
+      "Load your favorite 35mm or 120 roll and frame memories with authentic physical grain.",
     icon: Camera,
     highlightBadge: "Step 01",
   },
@@ -46,7 +46,8 @@ export const WORKFLOW_STEPS: IWorkflowStep[] = [
     stepNumber: 2,
     title: "Drop-off / Mail",
     subtitle: "Send to verified labs",
-    description: "Drop rolls off at a partner counter or print prepaid tracked mailer shipping labels.",
+    description:
+      "Drop rolls off at a partner counter or print prepaid tracked mailer shipping labels.",
     icon: Package,
     highlightBadge: "Step 02",
   },
@@ -55,7 +56,8 @@ export const WORKFLOW_STEPS: IWorkflowStep[] = [
     stepNumber: 3,
     title: "Developing",
     subtitle: "Chemical precision",
-    description: "Standard C-41, authentic B&W, cinema ECN-2 with remjet removal, and positive E-6.",
+    description:
+      "Standard C-41, authentic B&W, cinema ECN-2 with remjet removal, and positive E-6.",
     icon: FlaskConical,
     highlightBadge: "Step 03",
   },
@@ -64,7 +66,8 @@ export const WORKFLOW_STEPS: IWorkflowStep[] = [
     stepNumber: 4,
     title: "Scanning",
     subtitle: "Ultra high-resolution",
-    description: "Noritsu HS-1800 and Fuji Frontier SP-3000 scanner runs with dedicated color curves.",
+    description:
+      "Noritsu HS-1800 and Fuji Frontier SP-3000 scanner runs with dedicated color curves.",
     icon: Scan,
     highlightBadge: "Step 04",
   },
@@ -73,7 +76,8 @@ export const WORKFLOW_STEPS: IWorkflowStep[] = [
     stepNumber: 5,
     title: "AI Enhancing",
     subtitle: "Smart color & grain preservation",
-    description: "Emulsion identification, spectral color tuning, and non-destructive scratch retouching.",
+    description:
+      "Emulsion identification, spectral color tuning, and non-destructive scratch retouching.",
     icon: Wand2,
     highlightBadge: "Step 05",
   },
@@ -82,7 +86,8 @@ export const WORKFLOW_STEPS: IWorkflowStep[] = [
     stepNumber: 6,
     title: "Archive & Share",
     subtitle: "Cloud negatives & community",
-    description: "Perpetual cloud negative vault with EXIF metadata, framing tags, and instant gallery sharing.",
+    description:
+      "Perpetual cloud negative vault with EXIF metadata, framing tags, and instant gallery sharing.",
     icon: Archive,
     highlightBadge: "Step 06",
   },

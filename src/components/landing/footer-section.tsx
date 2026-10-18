@@ -4,7 +4,7 @@ import { FOOTER_SECTIONS } from "@/lib/landing-data"
 
 export function FooterSection() {
   return (
-    <footer aria-labelledby="footer-heading" className="border-t border-zinc-200/80 bg-zinc-50/60 text-zinc-600">
+    <footer className="border-t border-zinc-200/80 bg-zinc-50/60 text-zinc-600">
       <h2 id="footer-heading" className="sr-only">
         Footer
       </h2>
@@ -29,7 +29,8 @@ export function FooterSection() {
             </Link>
 
             <p className="mt-3 text-xs sm:text-sm text-zinc-500 leading-relaxed max-w-sm">
-              The complete ecosystem connecting analog photographers, commercial film labs, and vintage gear enthusiasts worldwide.
+              The complete ecosystem connecting analog photographers, commercial film labs, and
+              vintage gear enthusiasts worldwide.
             </p>
 
             <div className="mt-4 flex items-center gap-2">

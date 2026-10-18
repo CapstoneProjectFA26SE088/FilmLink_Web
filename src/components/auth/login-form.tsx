@@ -26,9 +26,7 @@ export function LoginForm() {
       </div>
 
       {/* Headline */}
-      <h1 className="mt-4 text-center text-2xl font-bold tracking-tight text-zinc-900">
-        Login
-      </h1>
+      <h1 className="mt-4 text-center text-2xl font-bold tracking-tight text-zinc-900">Login</h1>
 
       {/* Main Login Form */}
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
@@ -88,11 +86,7 @@ export function LoginForm() {
               aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-3 text-zinc-400 hover:text-zinc-600 transition-colors"
             >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
           {errors.password && (
@@ -141,10 +135,7 @@ export function LoginForm() {
         {/* Footer Link */}
         <p className="mt-4 text-center text-xs text-zinc-500">
           Don&apos;t have an account?{" "}
-          <Link
-            href="/register"
-            className="font-semibold text-[#D94848] hover:underline"
-          >
+          <Link href="/register" className="font-semibold text-[#D94848] hover:underline">
             Create Account
           </Link>
         </p>

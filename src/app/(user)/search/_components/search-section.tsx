@@ -1,9 +1,9 @@
 import { Funnel, Search as SearchIcon } from "lucide-react"
-import { FilmLabDirectory } from "@/components/search/film-lab-directory"
-import { SuggestedSearchChips } from "@/components/search/suggested-search-chips"
-import { SocialPageLayout } from "@/components/social/social-page-layout"
+import { SocialChatbot } from "@/components/social/social-chatbot"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { FilmLabDirectory } from "./film-lab-directory"
+import { SuggestedSearchChips } from "./suggested-search-chips"
 
 function SearchBar() {
   return (
@@ -31,9 +31,9 @@ function SearchBar() {
   )
 }
 
-export default function SearchLayout() {
+export default function SearchSection() {
   return (
-    <SocialPageLayout activePage="search">
+    <>
       <section
         aria-label="Find a film lab"
         className="mx-auto flex w-full max-w-[1088px] min-w-0 flex-col gap-4"
@@ -51,6 +51,7 @@ export default function SearchLayout() {
           A space for conversations, not distractions.
         </p>
       </section>
-    </SocialPageLayout>
+      <SocialChatbot />
+    </>
   )
 }

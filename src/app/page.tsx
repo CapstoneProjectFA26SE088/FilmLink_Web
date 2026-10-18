@@ -1,8 +1,8 @@
 import {
   AIFeaturesSection,
   BannerShowcase,
-  CTASection,
   CommunitySection,
+  CTASection,
   FooterSection,
   HeroSection,
   LabSearchSection,

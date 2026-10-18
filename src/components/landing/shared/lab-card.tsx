@@ -47,7 +47,10 @@ export function LabCard({ lab }: LabCardProps) {
           )}
 
           {lab.featuredBadge && (
-            <Badge variant="outline" className="text-[10px] h-5 border-rose-200 text-rose-600 bg-rose-50/50">
+            <Badge
+              variant="outline"
+              className="text-[10px] h-5 border-rose-200 text-rose-600 bg-rose-50/50"
+            >
               {lab.featuredBadge}
             </Badge>
           )}
