@@ -66,7 +66,7 @@ export function MainSidebar({ role }: MainSidebarProps) {
           : "/feed"
 
   return (
-    <aside className="group/sidebar fixed inset-y-0 left-0 z-40 flex w-[72px] flex-col items-start justify-between overflow-hidden bg-white px-3 py-6 transition-[width] duration-200 ease-out hover:w-[245px] focus-within:w-[245px]">
+    <aside className="group/sidebar sidebar-hover-expand fixed inset-y-0 left-0 z-40 flex w-[72px] flex-col items-start justify-between overflow-hidden bg-white px-3 py-6 transition-[width] duration-200 ease-out">
       <Link
         aria-label="FilmLink home"
         className="flex h-14 w-[220px] shrink-0 items-center gap-4 rounded-xl px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -88,7 +88,7 @@ export function MainSidebar({ role }: MainSidebarProps) {
             <>
               <Icon aria-hidden="true" className="size-6 shrink-0" />
               <span
-                className={`whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100 ${isActive ? "font-semibold" : ""}`}
+                className={`sidebar-hover-expand-label whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 ${isActive ? "font-semibold" : ""}`}
               >
                 {label}
               </span>
@@ -130,7 +130,7 @@ export function MainSidebar({ role }: MainSidebarProps) {
           variant="ghost"
         >
           <Settings aria-hidden="true" className="size-6 shrink-0" />
-          <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
+          <span className="sidebar-hover-expand-label whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150">
             Settings
           </span>
         </Button>
@@ -147,7 +147,7 @@ export function MainSidebar({ role }: MainSidebarProps) {
           variant="ghost"
         >
           <LogOut aria-hidden="true" className="size-6 shrink-0" />
-          <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
+          <span className="sidebar-hover-expand-label whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150">
             Sign out
           </span>
         </Button>
