@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import { LoginForm } from "./_components/login-form"
 
 export const metadata: Metadata = {
-  title: "Login | FilmFlow",
-  description: "Sign in to your FilmFlow account to manage analog rolls, scans, and labs.",
+  title: "Login | FilmLink",
+  description: "Sign in to your FilmLink account.",
 }
 
 export default function LoginPage() {

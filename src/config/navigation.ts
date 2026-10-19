@@ -7,6 +7,8 @@ export type NavIconName =
   | "map-pin"
   | "package"
   | "search"
+  | "shield-check"
+  | "shield-user"
   | "users"
 
 export type NavItem = {
@@ -15,7 +17,7 @@ export type NavItem = {
   icon: NavIconName
 }
 
-export type NavRole = "user" | "lab-owner"
+export type NavRole = "user" | "lab-owner" | "admin" | "moderator"
 
 export const USER_NAV: NavItem[] = [
   { label: "Home", href: "/feed", icon: "home" },
@@ -36,3 +38,7 @@ export const LAB_OWNER_NAV: NavItem[] = [
   { label: "Revenue", icon: "banknote" },
   { label: "Reports", icon: "clipboard-list" },
 ]
+
+export const ADMIN_NAV: NavItem[] = [{ label: "Admin", href: "/admin", icon: "shield-check" }]
+
+export const MODERATOR_NAV: NavItem[] = [{ label: "Moderation", href: "/mod", icon: "shield-user" }]

@@ -7,17 +7,26 @@ import {
   ClipboardList,
   GalleryVerticalEnd,
   Home,
+  LogOut,
   type LucideIcon,
   MapPin,
   Package,
   Search,
   Settings,
+  ShieldCheck,
+  ShieldUser,
   Users,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LAB_OWNER_NAV, type NavRole, USER_NAV } from "@/config/navigation"
+import {
+  ADMIN_NAV,
+  LAB_OWNER_NAV,
+  MODERATOR_NAV,
+  type NavRole,
+  USER_NAV,
+} from "@/config/navigation"
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   banknote: Banknote,
@@ -28,6 +37,8 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "map-pin": MapPin,
   package: Package,
   search: Search,
+  "shield-check": ShieldCheck,
+  "shield-user": ShieldUser,
   users: Users,
 }
 
@@ -37,14 +48,29 @@ type MainSidebarProps = {
 
 export function MainSidebar({ role }: MainSidebarProps) {
   const pathname = usePathname()
-  const items = role === "lab-owner" ? LAB_OWNER_NAV : USER_NAV
+  const items =
+    role === "lab-owner"
+      ? LAB_OWNER_NAV
+      : role === "admin"
+        ? ADMIN_NAV
+        : role === "moderator"
+          ? MODERATOR_NAV
+          : USER_NAV
+  const homeHref =
+    role === "lab-owner"
+      ? "/film-lab-owner"
+      : role === "admin"
+        ? "/admin"
+        : role === "moderator"
+          ? "/mod"
+          : "/feed"
 
   return (
     <aside className="group/sidebar fixed inset-y-0 left-0 z-40 flex w-[72px] flex-col items-start justify-between overflow-hidden bg-white px-3 py-6 transition-[width] duration-200 ease-out hover:w-[245px] focus-within:w-[245px]">
       <Link
-        aria-label="FilmLink feed"
+        aria-label="FilmLink home"
         className="flex h-14 w-[220px] shrink-0 items-center gap-4 rounded-xl px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        href="/feed"
+        href={homeHref}
       >
         <span className="flex size-6 shrink-0 items-center justify-center font-sans text-[28px] leading-none tracking-[-0.08em]">
           fl.
@@ -96,17 +122,36 @@ export function MainSidebar({ role }: MainSidebarProps) {
         })}
       </nav>
 
-      <Button
-        aria-label="Settings"
-        className="h-14 w-[220px] justify-start gap-4 rounded-xl px-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&_svg:not([class*='size-'])]:size-6 disabled:opacity-100"
-        disabled
-        variant="ghost"
-      >
-        <Settings aria-hidden="true" />
-        <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
-          Settings
-        </span>
-      </Button>
+      <div className="flex w-[220px] flex-col gap-1">
+        <Button
+          aria-label="Settings"
+          className="h-14 w-full justify-start gap-4 rounded-xl px-3 text-muted-foreground disabled:opacity-100"
+          disabled
+          variant="ghost"
+        >
+          <Settings aria-hidden="true" className="size-6 shrink-0" />
+          <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
+            Settings
+          </span>
+        </Button>
+        <Button
+          aria-label="Sign out"
+          className="h-14 w-full justify-start gap-4 rounded-xl px-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          onClick={async () => {
+            try {
+              await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" })
+            } finally {
+              window.location.assign("/login")
+            }
+          }}
+          variant="ghost"
+        >
+          <LogOut aria-hidden="true" className="size-6 shrink-0" />
+          <span className="whitespace-nowrap text-sm leading-[18px] opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
+            Sign out
+          </span>
+        </Button>
+      </div>
     </aside>
   )
 }

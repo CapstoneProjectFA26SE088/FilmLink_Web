@@ -1,3 +1,4 @@
+import { getAccessTokenFromCookie, refreshSession } from "@/lib/auth/client"
 import { env } from "@/lib/env"
 import type { ApiResponse } from "@/types/api"
 
@@ -21,68 +22,102 @@ export interface FetchOptions extends Omit<RequestInit, "body"> {
   timeoutMs?: number
 }
 
-/**
- * Enterprise typed fetch client
- * - Automatic JSON parsing & serialization
- * - Timeout handling via AbortController
- * - Unified error normalization
- * - Standardized headers
- */
+function errorMessage(data: unknown, fallback: string) {
+  if (data && typeof data === "object") {
+    const body = data as { detail?: unknown; message?: unknown; title?: unknown }
+    for (const value of [body.detail, body.message, body.title]) {
+      if (typeof value === "string" && value.trim()) return value
+    }
+  }
+  return fallback || "Request failed"
+}
+
+async function readResponse(response: Response): Promise<unknown> {
+  if (response.status === 204) return null
+  const text = await response.text()
+  if (!text) return null
+  if (response.headers.get("content-type")?.includes("json")) {
+    try {
+      return JSON.parse(text)
+    } catch {
+      return text
+    }
+  }
+  return text
+}
+
+function isAuthEndpoint(pathname: string) {
+  return pathname.includes("/api/auth/") || pathname.includes("/api/v1/auth/")
+}
+
+function redirectToLogin() {
+  if (typeof window === "undefined") return
+  const pathname = window.location.pathname
+  const isProtectedPath = ["/feed", "/search", "/film-lab-owner", "/admin", "/mod"].some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  )
+  if (!isProtectedPath) return
+  const from = encodeURIComponent(`${pathname}${window.location.search}`)
+  window.location.assign(`/login?from=${from}`)
+}
+
+/** Typed fetch client with bearer auth and one reactive refresh/retry on 401. */
 export async function apiClient<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<ApiResponse<T>> {
   const { params, body, timeoutMs = 15000, headers, ...customConfig } = options
-
-  // 1. Build URL with query params
   const baseUrl = endpoint.startsWith("http") ? "" : env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
   const url = new URL(baseUrl ? `${baseUrl}/${endpoint.replace(/^\//, "")}` : endpoint)
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        url.searchParams.append(key, String(value))
-      }
+      if (value !== undefined && value !== null) url.searchParams.append(key, String(value))
     })
   }
 
-  // 2. Setup Timeout Controller
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
-
-  // 3. Prepare Headers and Body
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData
   const requestHeaders = new Headers(headers)
-
-  if (!isFormData && body && !requestHeaders.has("Content-Type")) {
+  if (!isFormData && body !== undefined && body !== null && !requestHeaders.has("Content-Type")) {
     requestHeaders.set("Content-Type", "application/json")
   }
-  if (!requestHeaders.has("Accept")) {
-    requestHeaders.set("Accept", "application/json")
+  if (!requestHeaders.has("Accept")) requestHeaders.set("Accept", "application/json")
+
+  const performRequest = (token?: string | null) => {
+    const attemptHeaders = new Headers(requestHeaders)
+    if (token && !attemptHeaders.has("Authorization"))
+      attemptHeaders.set("Authorization", `Bearer ${token}`)
+    return fetch(url.toString(), {
+      ...customConfig,
+      headers: attemptHeaders,
+      signal: controller.signal,
+      body: isFormData
+        ? (body as FormData)
+        : body === undefined || body === null
+          ? undefined
+          : JSON.stringify(body),
+    })
   }
 
   try {
-    const response = await fetch(url.toString(), {
-      ...customConfig,
-      headers: requestHeaders,
-      signal: controller.signal,
-      body: isFormData ? (body as FormData) : body ? JSON.stringify(body) : undefined,
-    })
+    const accessToken = getAccessTokenFromCookie()
+    let response = await performRequest(accessToken)
 
-    clearTimeout(timeoutId)
+    if (response.status === 401 && !isAuthEndpoint(url.pathname)) {
+      const role = await refreshSession()
+      if (role) {
+        response = await performRequest(getAccessTokenFromCookie())
+      } else {
+        redirectToLogin()
+      }
+    }
 
-    // Parse Response
-    const contentType = response.headers.get("content-type")
-    const isJson = contentType?.includes("application/json")
-    const responseData = isJson ? await response.json() : await response.text()
-
+    const responseData = await readResponse(response)
     if (!response.ok) {
-      const errorMessage =
-        (typeof responseData === "object" && responseData !== null && "message" in responseData
-          ? (responseData as { message: string }).message
-          : response.statusText) || "Request failed"
-
-      throw new ApiError(errorMessage, response.status, undefined, responseData)
+      const message = errorMessage(responseData, response.statusText)
+      throw new ApiError(message, response.status, undefined, responseData)
     }
 
     return {
@@ -92,17 +127,9 @@ export async function apiClient<T>(
       success: true,
     }
   } catch (error) {
-    clearTimeout(timeoutId)
-
     if (error instanceof ApiError) {
-      return {
-        data: null,
-        error: error.message,
-        status: error.status,
-        success: false,
-      }
+      return { data: null, error: error.message, status: error.status, success: false }
     }
-
     if (error instanceof Error && error.name === "AbortError") {
       return {
         data: null,
@@ -111,18 +138,17 @@ export async function apiClient<T>(
         success: false,
       }
     }
-
-    const message = error instanceof Error ? error.message : "Network error"
     return {
       data: null,
-      error: message,
+      error: error instanceof Error ? error.message : "Network error",
       status: 500,
       success: false,
     }
+  } finally {
+    clearTimeout(timeoutId)
   }
 }
 
-/** Convenience HTTP methods */
 export const api = {
   get: <T>(url: string, options?: FetchOptions) => apiClient<T>(url, { ...options, method: "GET" }),
   post: <T>(url: string, body?: unknown, options?: FetchOptions) =>

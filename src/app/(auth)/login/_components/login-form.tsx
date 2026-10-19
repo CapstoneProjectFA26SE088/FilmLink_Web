@@ -4,7 +4,6 @@ import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { AuthCard } from "../../_components/auth-card"
 import { AuthLogo } from "../../_components/auth-logo"
-import { GoogleButton } from "../../_components/google-button"
 import { useLoginForm } from "../_hooks/use-login-form"
 
 export function LoginForm() {
@@ -76,7 +75,7 @@ export function LoginForm() {
               autoComplete="current-password"
               value={formData.password}
               onChange={(e) => handleChange("password", e.target.value)}
-              placeholder="••••••••••••"
+              placeholder="Enter your password"
               required
               className="w-full rounded-xl border border-zinc-200/90 bg-white px-3.5 py-2.5 pr-10 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition-all focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200"
             />
@@ -120,17 +119,11 @@ export function LoginForm() {
           <span>{isSubmitting ? "Signing In..." : "Sign In"}</span>
           <ArrowRight className="size-4" />
         </button>
-
-        {/* Divider */}
-        <div className="relative my-2 flex items-center justify-center">
-          <div className="w-full border-t border-zinc-200/80" />
-          <span className="absolute bg-white px-3 text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
-            Or continue with
-          </span>
-        </div>
-
-        {/* Google Social Button */}
-        <GoogleButton />
+        {errors.general && (
+          <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            {errors.general}
+          </p>
+        )}
 
         {/* Footer Link */}
         <p className="mt-4 text-center text-xs text-zinc-500">
