@@ -1,22 +1,20 @@
 "use client"
 
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Check,
   CheckCircle2,
   ClipboardList,
-  Cpu,
-  Eye,
+  Edit3,
   FileCheck,
   FlaskConical,
-  RotateCcw,
-  Scan,
-  ScanLine,
+  MessageSquare,
   Sparkles,
   Upload,
-  UserCheck,
-  Zap,
+  X,
+  XCircle,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-toastify"
@@ -32,13 +30,25 @@ import {
 } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import {
   type CustomerOrder,
+  type LabProposal,
   customerOrdersUpdatedEvent,
   getCustomerOrders,
   saveCustomerOrder,
   updateCustomerOrder,
 } from "@/lib/customer-orders"
+import { addUserNotification } from "@/lib/user-notifications"
 import {
   MOCK_AI_QUALITY_REPORTS,
   MOCK_LAB_CUSTOMER_ORDERS,
@@ -78,11 +88,13 @@ function OrderCard({
   onReject,
   onApprove,
   onContinue,
+  onProposeChange,
 }: {
   order: CustomerOrder
-  onReject: (id: string) => void
+  onReject: (order: CustomerOrder) => void
   onApprove: (order: CustomerOrder) => void
   onContinue: (order: CustomerOrder) => void
+  onProposeChange: (order: CustomerOrder) => void
 }) {
   return (
     <Card className="rounded-2xl border-border shadow-none ring-1 ring-foreground/5 hover:ring-foreground/10 transition-all">
@@ -107,6 +119,8 @@ function OrderCard({
                 ? "bg-destructive/10 text-destructive border-destructive/20"
                 : order.status === "accepted"
                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                : order.status === "change_proposed"
+                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
                 : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
             }`}
             variant="outline"
@@ -115,6 +129,8 @@ function OrderCard({
               ? "Chờ duyệt"
               : order.status === "accepted"
               ? "Đã duyệt / Đang xử lý"
+              : order.status === "change_proposed"
+              ? "Đã gửi đề xuất thay đổi"
               : "Từ chối"}
           </Badge>
         </div>
@@ -126,26 +142,79 @@ function OrderCard({
           label="Loại phim & Quy trình"
           value={[order.filmName, order.format, order.process, order.pushPull].filter(Boolean).join(" · ")}
         />
-        <OrderField label="Số lượng & Hình thức gửi" value={`${order.rollCount} cuộn · ${order.delivery === "mail-in" ? "Bưu điện (Mail-in)" : "Mang trực tiếp"}`} />
+        <OrderField
+          label="Số lượng & Hình thức gửi"
+          value={`${order.rollCount} cuộn · ${
+            order.delivery === "mail-in" ? "Bưu điện (Mail-in)" : "Mang trực tiếp"
+          }`}
+        />
+
+        {order.status === "change_proposed" && order.proposal && (
+          <div className="sm:col-span-2 rounded-xl bg-purple-500/10 border border-purple-500/30 p-3 text-xs flex flex-col gap-1">
+            <span className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+              <Edit3 className="size-3.5" />
+              Đề xuất thay đổi đang gửi cho khách:
+            </span>
+            <p className="text-purple-900 dark:text-purple-200">{order.proposal.reason}</p>
+            <div className="flex items-center gap-3 pt-1 text-[11px] text-muted-foreground">
+              <span>Quy trình mới: <strong>{order.proposal.suggestedProcess}</strong></span>
+              <span>Phụ phí: <strong>{order.proposal.priceAdjustmentFormatted}</strong></span>
+            </div>
+          </div>
+        )}
+
+        {order.status === "rejected" && order.rejectReason && (
+          <div className="sm:col-span-2 rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-xs flex flex-col gap-1">
+            <span className="font-semibold text-destructive flex items-center gap-1">
+              <XCircle className="size-3.5" />
+              Lý do từ chối:
+            </span>
+            <p className="text-destructive/90">{order.rejectReason}</p>
+          </div>
+        )}
       </CardContent>
+
       <CardFooter className="flex flex-col items-stretch gap-2 border-t pt-3 sm:flex-row sm:justify-end">
         {order.status === "pending" && (
           <>
             <Button
-              className="text-xs h-8"
-              onClick={() => onReject(order.id)}
+              className="text-xs h-8 text-destructive hover:bg-destructive/10"
+              onClick={() => onReject(order)}
               variant="outline"
             >
               Từ chối đơn
+            </Button>
+            <Button
+              className="text-xs h-8 text-purple-600 dark:text-purple-400 border-purple-500/30 hover:bg-purple-500/10"
+              onClick={() => onProposeChange(order)}
+              variant="outline"
+            >
+              <Edit3 className="size-3.5 mr-1" />
+              Đề xuất thay đổi
             </Button>
             <Button
               className="bg-[rgb(74,93,249)] text-white hover:bg-[rgb(74,93,249)]/90 text-xs h-8"
               onClick={() => onApprove(order)}
             >
               <Check className="size-3.5 mr-1" />
-              Duyệt đơn &amp; Bắt đầu
+              Duyệt đơn
             </Button>
           </>
+        )}
+        {order.status === "change_proposed" && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground italic">
+              Đang chờ khách hàng phản hồi trên ứng dụng...
+            </span>
+            <Button
+              className="text-xs h-8"
+              onClick={() => onApprove(order)}
+              size="sm"
+              variant="outline"
+            >
+              Ép duyệt ngay
+            </Button>
+          </div>
         )}
         {order.status === "accepted" && (
           <Button
@@ -197,12 +266,40 @@ function OrderDetails({ order }: { order: CustomerOrder }) {
           <OrderField label="Quy trình tráng" value={order.process} />
           <OrderField label="Số cuộn" value={`${order.rollCount} cuộn`} />
           <OrderField label="Bù sáng Push / Pull" value={order.pushPull} />
-          <OrderField label="Phương thức vận chuyển" value={order.delivery === "mail-in" ? "Gửi bưu điện" : "Trực tiếp"} />
+          <OrderField
+            label="Phương thức vận chuyển"
+            value={order.delivery === "mail-in" ? "Gửi bưu điện" : "Trực tiếp"}
+          />
           <div className="sm:col-span-2">
             <OrderField label="Ghi chú của khách hàng" value={order.note || "Không có ghi chú"} />
           </div>
         </div>
       </section>
+
+      {order.proposal && (
+        <Card className="rounded-2xl border-purple-500/30 bg-purple-500/5 p-4 shadow-none">
+          <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold text-xs pb-1">
+            <Edit3 className="size-4" />
+            Đề xuất thay đổi của Lab gửi khách:
+          </div>
+          <p className="text-xs text-foreground pt-1">{order.proposal.reason}</p>
+          <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
+            <div className="rounded-lg bg-background p-2 border">
+              <span className="text-muted-foreground block text-[10px]">Quy trình mới</span>
+              <span className="font-semibold">{order.proposal.suggestedProcess}</span>
+            </div>
+            <div className="rounded-lg bg-background p-2 border">
+              <span className="text-muted-foreground block text-[10px]">Phụ phí điều chỉnh</span>
+              <span className="font-semibold text-purple-600">{order.proposal.priceAdjustmentFormatted}</span>
+            </div>
+          </div>
+          {order.proposal.notes && (
+            <p className="text-[11px] text-muted-foreground pt-2 italic">
+              Lời nhắn KTV: {order.proposal.notes}
+            </p>
+          )}
+        </Card>
+      )}
 
       <Card className="gap-2 rounded-xl bg-muted/30 py-3 shadow-none border border-border/50">
         <CardHeader className="p-0 px-4">
@@ -215,7 +312,8 @@ function OrderDetails({ order }: { order: CustomerOrder }) {
             {order.senderName} · {displayValue(order.rollCount)} cuộn {displayValue(order.format)}
           </span>
           <span>
-            Quy trình: {displayValue(order.process)} ({displayValue(order.pushPull)}) · Trạng thái: {order.status}
+            Quy trình: {displayValue(order.process)} ({displayValue(order.pushPull)}) · Trạng thái:{" "}
+            {order.status}
           </span>
         </CardContent>
       </Card>
@@ -263,9 +361,7 @@ function WorkflowPanel({
                   </div>
                 </div>
                 {isSelected && (
-                  <Badge className="bg-[rgb(74,93,249)] text-white text-[10px]">
-                    Đã gán
-                  </Badge>
+                  <Badge className="bg-[rgb(74,93,249)] text-white text-[10px]">Đã gán</Badge>
                 )}
               </div>
               <p className="text-xs text-muted-foreground pt-2.5 line-clamp-2">
@@ -302,11 +398,16 @@ function StatusPanel({ lineName }: { lineName: string }) {
             <div className="flex flex-col gap-0.5 pt-0.5 flex-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold">01. Tiếp nhận &amp; Rút đầu film trong darkroom</p>
-                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]" variant="outline">
+                <Badge
+                  className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]"
+                  variant="outline"
+                >
                   Hoàn tất
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">Kẹp thẻ ID và kiểm tra loại film, chuẩn bị cuộn vào lõi máy.</p>
+              <p className="text-xs text-muted-foreground">
+                Kẹp thẻ ID và kiểm tra loại film, chuẩn bị cuộn vào lõi máy.
+              </p>
             </div>
           </div>
 
@@ -319,7 +420,10 @@ function StatusPanel({ lineName }: { lineName: string }) {
             <div className="flex flex-col gap-0.5 pt-0.5 flex-1">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold">02. Bể thuốc hiện (Dev) &amp; Tẩy than / Hãm</p>
-                <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px]" variant="outline">
+                <Badge
+                  className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px]"
+                  variant="outline"
+                >
                   Đang xử lý (38°C)
                 </Badge>
               </div>
@@ -342,7 +446,9 @@ function StatusPanel({ lineName }: { lineName: string }) {
                   Chờ bước 2
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">Sấy ở nhiệt độ 35°C trong buồng lọc bụi HEPA.</p>
+              <p className="text-xs text-muted-foreground">
+                Sấy ở nhiệt độ 35°C trong buồng lọc bụi HEPA.
+              </p>
             </div>
           </div>
         </CardContent>
@@ -407,9 +513,7 @@ function UploadScansPanel({
                     Báo cáo kiểm định chất lượng AI Quality Check (Đạt)
                   </CardTitle>
                 </div>
-                <Badge className="bg-emerald-600 text-white text-[10px]">
-                  Passed 100%
-                </Badge>
+                <Badge className="bg-emerald-600 text-white text-[10px]">Passed 100%</Badge>
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-1 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -419,15 +523,21 @@ function UploadScansPanel({
               </div>
               <div className="rounded-xl bg-background/80 p-2.5 border border-border/40">
                 <span className="text-muted-foreground block text-[11px]">Độ sạch bụi xước</span>
-                <span className="font-bold text-emerald-600 text-xs">{report.dustScratchScore} / 10</span>
+                <span className="font-bold text-emerald-600 text-xs">
+                  {report.dustScratchScore} / 10
+                </span>
               </div>
               <div className="rounded-xl bg-background/80 p-2.5 border border-border/40">
                 <span className="text-muted-foreground block text-[11px]">Độ chuẩn màu</span>
-                <span className="font-bold text-emerald-600 text-xs">{report.colorBalanceAccuracy}%</span>
+                <span className="font-bold text-emerald-600 text-xs">
+                  {report.colorBalanceAccuracy}%
+                </span>
               </div>
               <div className="rounded-xl bg-background/80 p-2.5 border border-border/40">
                 <span className="text-muted-foreground block text-[11px]">Số frame hợp lệ</span>
-                <span className="font-bold text-foreground text-xs">{report.validFrames}/{report.totalFrames} frames</span>
+                <span className="font-bold text-foreground text-xs">
+                  {report.validFrames}/{report.totalFrames} frames
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -439,7 +549,10 @@ function UploadScansPanel({
             </span>
             <div className="grid grid-cols-3 gap-2">
               {report.sampleImages.map((imgUrl, idx) => (
-                <div className="aspect-[3/2] overflow-hidden rounded-xl border border-border relative bg-muted" key={imgUrl}>
+                <div
+                  className="aspect-[3/2] overflow-hidden rounded-xl border border-border relative bg-muted"
+                  key={imgUrl}
+                >
                   <img alt={`Frame ${idx + 1}`} className="size-full object-cover" src={imgUrl} />
                   <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-[9px] text-white font-mono">
                     Frame #{idx + 1}
@@ -475,13 +588,31 @@ export function CustomerOrders() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [selectedLineId, setSelectedLineId] = useState<string>("line-c41-noritsu")
 
+  // Modal đề xuất thay đổi
+  const [proposalModalOrder, setProposalModalOrder] = useState<CustomerOrder | null>(null)
+  const [proposalReason, setProposalReason] = useState(
+    "Cuộn film là Vision3/phim chiết có lớp than Remjet, bắt buộc phải tráng theo quy trình ECN-2 chuyên dụng."
+  )
+  const [suggestedProcess, setSuggestedProcess] = useState("ECN-2")
+  const [suggestedPushPull, setSuggestedPushPull] = useState("normal")
+  const [priceAdjustment, setPriceAdjustment] = useState("+40,000 ₫")
+  const [technicianNote, setTechnicianNote] = useState(
+    "Lab sẽ sử dụng máy xịt áp lực nước tẩy sạch than Remjet và tráng máy Jobo ECN-2 để ảnh lên màu chuẩn điện ảnh nhất."
+  )
+
+  // Modal từ chối đơn
+  const [rejectModalOrder, setRejectModalOrder] = useState<CustomerOrder | null>(null)
+  const [rejectReason, setRejectReason] = useState("Vỏ cassette bị nứt toác và film đã bị lộ sáng.")
+
   const selectedOrder = orders.find((order) => order.id === selectedOrderId) ?? null
 
   useEffect(() => {
     const syncOrders = () => {
       const savedOrders = getCustomerOrders()
-      // If empty or only has the old single testOrder, seed with MOCK_LAB_CUSTOMER_ORDERS
-      if (savedOrders.length === 0 || (savedOrders.length === 1 && savedOrders[0]?.id === "TEST-001")) {
+      if (
+        savedOrders.length === 0 ||
+        (savedOrders.length === 1 && savedOrders[0]?.id === "TEST-001")
+      ) {
         for (const order of MOCK_LAB_CUSTOMER_ORDERS) {
           saveCustomerOrder(order)
         }
@@ -499,20 +630,78 @@ export function CustomerOrders() {
     }
   }, [])
 
-  function rejectOrder(id: string) {
-    updateCustomerOrder(id, { status: "rejected" })
+  function handleApprove(order: CustomerOrder) {
+    updateCustomerOrder(order.id, { status: "accepted" })
     setOrders(getCustomerOrders())
-    toast.error("Đã từ chối đơn hàng.")
+
+    // Gửi thông báo đến user
+    addUserNotification({
+      orderId: order.id,
+      labName: order.labName,
+      title: "Lab đã xác nhận đơn hàng!",
+      message: `${order.labName} đã tiếp nhận và xác nhận đơn #${order.id} (${order.filmName}). Kỹ thuật viên đang xếp cuộn vào hàng đợi xử lý.`,
+      type: "order_accepted",
+    })
+
+    toast.success(`Đã xác nhận đơn hàng #${order.id}!`)
   }
 
-  function openOrder(order: CustomerOrder, approve = false) {
-    if (approve) {
-      updateCustomerOrder(order.id, { status: "accepted" })
-      toast.success("Đã duyệt đơn hàng thành công!")
-    }
+  function handleConfirmReject() {
+    if (!rejectModalOrder) return
+
+    updateCustomerOrder(rejectModalOrder.id, {
+      status: "rejected",
+      rejectReason: rejectReason.trim(),
+    })
     setOrders(getCustomerOrders())
+
+    // Gửi thông báo đến user
+    addUserNotification({
+      orderId: rejectModalOrder.id,
+      labName: rejectModalOrder.labName,
+      title: "Đơn tráng phim bị từ chối",
+      message: `${rejectModalOrder.labName} không thể tiếp nhận đơn #${rejectModalOrder.id}. Lý do: ${rejectReason.trim()}`,
+      type: "order_rejected",
+    })
+
+    setRejectModalOrder(null)
+    toast.error("Đã từ chối đơn hàng và gửi thông báo tới khách hàng.")
+  }
+
+  function handleSendProposal() {
+    if (!proposalModalOrder) return
+
+    const proposal: LabProposal = {
+      proposedAt: new Date().toISOString(),
+      reason: proposalReason.trim(),
+      suggestedProcess,
+      suggestedPushPull,
+      priceAdjustmentFormatted: priceAdjustment,
+      notes: technicianNote.trim(),
+    }
+
+    updateCustomerOrder(proposalModalOrder.id, {
+      status: "change_proposed",
+      proposal,
+    })
+    setOrders(getCustomerOrders())
+
+    // Gửi thông báo đến user
+    addUserNotification({
+      orderId: proposalModalOrder.id,
+      labName: proposalModalOrder.labName,
+      title: "Lab đề xuất thay đổi đơn hàng",
+      message: `${proposalModalOrder.labName} đề xuất thay đổi quy trình tráng cho đơn #${proposalModalOrder.id}: ${proposalReason}. Vui lòng xem và phản hồi.`,
+      type: "proposal_received",
+    })
+
+    setProposalModalOrder(null)
+    toast.info("Đã gửi đề xuất thay đổi cho khách hàng thành công!")
+  }
+
+  function openOrder(order: CustomerOrder) {
     setSelectedOrderId(order.id)
-    setDialogStage(approve ? 1 : order.workflowStage)
+    setDialogStage(order.workflowStage || 0)
   }
 
   function advanceWorkflow() {
@@ -537,7 +726,9 @@ export function CustomerOrders() {
 
   function handleCompleteOrder() {
     if (!selectedOrder) return
-    toast.success(`Đã gửi email đường link tải file scan hoàn tất cho khách ${selectedOrder.senderName}!`)
+    toast.success(
+      `Đã gửi email đường link tải file scan hoàn tất cho khách ${selectedOrder.senderName}!`
+    )
     closeWorkflow()
   }
 
@@ -547,7 +738,8 @@ export function CustomerOrders() {
   })
 
   const activeStep = workflowSteps[dialogStage] ?? workflowSteps[0]
-  const currentLine = MOCK_PROCESSING_LINES.find((l) => l.id === selectedLineId)?.name || "Noritsu V30 Auto"
+  const currentLine =
+    MOCK_PROCESSING_LINES.find((l) => l.id === selectedLineId)?.name || "Noritsu V30 Auto"
 
   return (
     <>
@@ -573,9 +765,24 @@ export function CustomerOrders() {
         <div className="flex flex-wrap items-center gap-1.5 px-1 pb-3">
           {[
             { id: "all", label: `Tất cả (${orders.length})` },
-            { id: "pending", label: `Chờ duyệt (${orders.filter((o) => o.status === "pending").length})` },
-            { id: "accepted", label: `Đang xử lý (${orders.filter((o) => o.status === "accepted").length})` },
-            { id: "rejected", label: `Từ chối (${orders.filter((o) => o.status === "rejected").length})` },
+            {
+              id: "pending",
+              label: `Chờ duyệt (${orders.filter((o) => o.status === "pending").length})`,
+            },
+            {
+              id: "accepted",
+              label: `Đang xử lý (${orders.filter((o) => o.status === "accepted").length})`,
+            },
+            {
+              id: "change_proposed",
+              label: `Đã đề xuất (${
+                orders.filter((o) => o.status === "change_proposed").length
+              })`,
+            },
+            {
+              id: "rejected",
+              label: `Từ chối (${orders.filter((o) => o.status === "rejected").length})`,
+            },
           ].map((tab) => (
             <button
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors cursor-pointer ${
@@ -614,9 +821,10 @@ export function CustomerOrders() {
               {filteredOrders.map((order) => (
                 <li key={order.id}>
                   <OrderCard
-                    onApprove={(nextOrder) => openOrder(nextOrder, true)}
-                    onContinue={(nextOrder) => openOrder(nextOrder)}
-                    onReject={rejectOrder}
+                    onApprove={handleApprove}
+                    onContinue={openOrder}
+                    onProposeChange={(ord) => setProposalModalOrder(ord)}
+                    onReject={(ord) => setRejectModalOrder(ord)}
                     order={order}
                   />
                 </li>
@@ -625,6 +833,191 @@ export function CustomerOrders() {
           )}
         </div>
       </section>
+
+      {/* MODAL: ĐỀ XUẤT THAY ĐỔI CHO KHÁCH */}
+      <Dialog
+        onOpenChange={(open) => !open && setProposalModalOrder(null)}
+        open={proposalModalOrder !== null}
+      >
+        {proposalModalOrder && (
+          <DialogContent className="max-w-[540px] rounded-3xl p-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-600">
+                  <Edit3 className="size-5" />
+                </span>
+                <div>
+                  <DialogTitle className="text-base font-bold text-foreground">
+                    Đề xuất thay đổi đơn #{proposalModalOrder.id}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground pt-0.5">
+                    Khách hàng: <strong>{proposalModalOrder.senderName}</strong> · Cuộn:{" "}
+                    <strong>{proposalModalOrder.filmName}</strong>
+                  </DialogDescription>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 text-xs">
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-foreground">Lý do đề xuất thay đổi:</span>
+                  <Select
+                    value={proposalReason}
+                    onValueChange={(val) => setProposalReason(val ?? "")}
+                  >
+                    <SelectTrigger aria-label="Lý do đề xuất thay đổi" className="w-full text-xs h-9 rounded-xl">
+                      <SelectValue placeholder="Chọn lý do đề xuất" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="Cuộn film là Vision3/phim chiết có lớp than Remjet, bắt buộc phải tráng theo quy trình ECN-2 chuyên dụng.">
+                          Film có lớp than Remjet (Cần chuyển sang ECN-2)
+                        </SelectItem>
+                        <SelectItem value="Film chụp ban đêm thiếu sáng, Lab đề xuất Push +1 hoặc +2 stop để cứu chi tiết vùng tối.">
+                          Đề xuất bù sáng Push film (+1 hoặc +2 stop)
+                        </SelectItem>
+                        <SelectItem value="Khách chọn nhầm định dạng 120 cho cuộn 35mm.">
+                          Sai định dạng film (35mm vs 120)
+                        </SelectItem>
+                        <SelectItem value="Thời gian hoàn thành cần kéo dài thêm 24h do bảo dưỡng máy tráng.">
+                          Dời thời gian hoàn thành (+24h)
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold text-foreground">Quy trình đề xuất mới:</span>
+                    <Select
+                      value={suggestedProcess}
+                      onValueChange={(val) => setSuggestedProcess(val ?? "ECN-2")}
+                    >
+                      <SelectTrigger aria-label="Quy trình đề xuất mới" className="w-full text-xs h-9 rounded-xl">
+                        <SelectValue placeholder="Chọn quy trình" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="ECN-2">ECN-2 Điện ảnh</SelectItem>
+                          <SelectItem value="B&W">B&W Đen trắng</SelectItem>
+                          <SelectItem value="Color (C-41)">Color (C-41)</SelectItem>
+                          <SelectItem value="Slide (E-6)">Slide (E-6)</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold text-foreground">Phụ phí chênh lệch:</span>
+                    <Input
+                      className="h-8 rounded-xl text-xs"
+                      onChange={(e) => setPriceAdjustment(e.target.value)}
+                      value={priceAdjustment}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-foreground">Ghi chú gửi khách hàng:</span>
+                  <Textarea
+                    className="min-h-16 rounded-xl text-xs"
+                    onChange={(e) => setTechnicianNote(e.target.value)}
+                    placeholder="Giải thích thêm cho khách hiểu lý do cần thay đổi..."
+                    value={technicianNote}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t">
+                <Button onClick={() => setProposalModalOrder(null)} size="sm" variant="ghost">
+                  Hủy
+                </Button>
+                <Button
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs"
+                  onClick={handleSendProposal}
+                  size="sm"
+                >
+                  Gửi đề xuất tới khách hàng
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* MODAL: TỪ CHỐI ĐƠN HÀNG */}
+      <Dialog
+        onOpenChange={(open) => !open && setRejectModalOrder(null)}
+        open={rejectModalOrder !== null}
+      >
+        {rejectModalOrder && (
+          <DialogContent className="max-w-[480px] rounded-3xl p-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+                  <XCircle className="size-5" />
+                </span>
+                <div>
+                  <DialogTitle className="text-base font-bold text-foreground">
+                    Từ chối đơn #{rejectModalOrder.id}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground pt-0.5">
+                    Khách hàng sẽ nhận được thông báo giải thích lý do không thể tiếp nhận cuộn film.
+                  </DialogDescription>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 text-xs">
+                <span className="font-semibold text-foreground">Chọn lý do từ chối:</span>
+                <Select
+                  value={rejectReason}
+                  onValueChange={(val) => setRejectReason(val ?? "")}
+                >
+                  <SelectTrigger aria-label="Chọn lý do từ chối" className="w-full text-xs h-9 rounded-xl">
+                    <SelectValue placeholder="Chọn lý do từ chối" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="Vỏ cassette bị nứt toác và film đã bị lộ sáng hoàn toàn trước khi tới lab.">
+                        Vỏ cassette bị hỏng / Lộ sáng
+                      </SelectItem>
+                      <SelectItem value="Film hết hạn quá lâu (trên 20 năm) bị dính chặt lớp nhũ tương, không thể cuộn vào máy.">
+                        Nhũ tương bị dính / Chảy keo
+                      </SelectItem>
+                      <SelectItem value="Lab đang tạm ngừng nhận quy trình tráng này do bảo trì thiết bị.">
+                        Tạm ngừng nhận quy trình này
+                      </SelectItem>
+                      <SelectItem value="Thông tin người gửi hoặc địa chỉ nhận lại không hợp lệ.">
+                        Thông tin gửi nhận không rõ ràng
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
+                <span className="font-semibold text-foreground pt-1">Ghi chú cụ thể:</span>
+                <Textarea
+                  className="min-h-16 rounded-xl text-xs"
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  value={rejectReason}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t">
+                <Button onClick={() => setRejectModalOrder(null)} size="sm" variant="ghost">
+                  Đóng
+                </Button>
+                <Button
+                  className="bg-destructive hover:bg-destructive/90 text-white text-xs"
+                  onClick={handleConfirmReject}
+                  size="sm"
+                >
+                  Xác nhận từ chối
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
 
       {/* 4-Step Order Workflow Dialog */}
       <Dialog

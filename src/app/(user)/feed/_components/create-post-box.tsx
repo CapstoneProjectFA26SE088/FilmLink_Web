@@ -37,6 +37,8 @@ export function CreatePostBox({ onPostCreated }: CreatePostBoxProps) {
       createdAt: new Date().toISOString(),
       timeAgo: "Vừa xong",
       content: content.trim(),
+      style: "street",
+      styleLabel: "Street / Đời thường",
       cameraMetadata: {
         camera,
         filmStock: selectedFilm,

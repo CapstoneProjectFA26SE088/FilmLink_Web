@@ -1,4 +1,19 @@
-export type CustomerOrderStatus = "pending" | "accepted" | "rejected"
+export type CustomerOrderStatus =
+  | "pending"
+  | "accepted"
+  | "rejected"
+  | "change_proposed"
+  | "cancelled"
+
+export interface LabProposal {
+  proposedAt: string
+  reason: string
+  suggestedProcess?: string
+  suggestedPushPull?: string
+  priceAdjustmentVnd?: number
+  priceAdjustmentFormatted?: string
+  notes?: string
+}
 
 export type CustomerOrder = {
   id: string
@@ -18,6 +33,9 @@ export type CustomerOrder = {
   createdAt: string
   status: CustomerOrderStatus
   workflowStage: number
+  rejectReason?: string
+  proposal?: LabProposal
+  proposalResponse?: "accepted" | "declined"
 }
 
 const storageKey = "filmlink-customer-orders"

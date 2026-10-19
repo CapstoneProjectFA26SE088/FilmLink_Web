@@ -2,6 +2,34 @@ import type { CustomerOrder } from "@/lib/customer-orders"
 
 export const MOCK_LAB_CUSTOMER_ORDERS: CustomerOrder[] = [
   {
+    id: "ORD-8501",
+    labId: "lab-1",
+    labName: "Croplab Hanoi",
+    senderName: "Vũ Hải Đăng",
+    phone: "0915 223 344",
+    email: "dang.vu@gmail.com",
+    returnAddress: "68 Bà Triệu, Hoàn Kiếm, Hà Nội",
+    filmName: "Kodak Vision3 500T (Chiết)",
+    format: "35mm (135)",
+    process: "Color (C-41)",
+    rollCount: "1",
+    pushPull: "normal",
+    delivery: "mail-in",
+    note: "Khách chọn nhầm C-41, cuộn này là film điện ảnh có lớp than Remjet.",
+    createdAt: "2026-10-19T10:00:00.000Z",
+    status: "change_proposed",
+    workflowStage: 0,
+    proposal: {
+      proposedAt: "2026-10-19T10:30:00.000Z",
+      reason: "Cuộn film Kodak Vision3 500T là film điện ảnh có lớp than Remjet, không thể tráng bằng máy C-41 thông thường (sẽ làm tắc máy và làm bẩn hóa chất).",
+      suggestedProcess: "ECN-2",
+      suggestedPushPull: "normal",
+      priceAdjustmentVnd: 40000,
+      priceAdjustmentFormatted: "+40,000 ₫",
+      notes: "Lab đề xuất chuyển sang quy trình tráng ECN-2 chuyên dụng có hệ thống tẩy than remjet. Phụ phí chênh lệch dịch vụ là +40,000 ₫.",
+    },
+  },
+  {
     id: "ORD-8492",
     labId: "lab-1",
     labName: "Croplab Hanoi",
@@ -114,6 +142,7 @@ export const MOCK_LAB_CUSTOMER_ORDERS: CustomerOrder[] = [
     createdAt: "2026-10-17T15:10:00.000Z",
     status: "rejected",
     workflowStage: 0,
+    rejectReason: "Vỏ cassette bị nứt toác và chốt gài bị bung hoàn toàn trong quá trình vận chuyển bưu điện, film đã bị lộ sáng 100% trước khi tới Lab.",
   },
   {
     id: "TEST-001",

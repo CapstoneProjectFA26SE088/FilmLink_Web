@@ -1,23 +1,49 @@
 "use client"
 
-import { Camera, CheckCircle2, Heart, MessageCircle, MoreHorizontal, Share2, UserRound } from "lucide-react"
+import {
+  Bookmark,
+  Camera,
+  CheckCircle2,
+  EyeOff,
+  Flag,
+  Heart,
+  MessageCircle,
+  MoreHorizontal,
+  Share2,
+  Sparkles,
+  UserRound,
+} from "lucide-react"
 import { useState } from "react"
 import { toast } from "react-toastify"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { UserFeedPost } from "../../mock_data"
 
 interface PostCardProps {
   post: UserFeedPost
   onToggleLike?: (postId: string) => void
+  onSelectFilter?: (keyword: string) => void
 }
 
-export function PostCard({ post, onToggleLike }: PostCardProps) {
+export function PostCard({ post, onToggleLike, onSelectFilter }: PostCardProps) {
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [commentsList, setCommentsList] = useState(post.comments || [])
+  const [isSaved, setIsSaved] = useState(false)
+
+  const handleToggleSave = () => {
+    setIsSaved(!isSaved)
+    toast.success(!isSaved ? "Đã lưu bài viết vào bộ sưu tập!" : "Đã bỏ lưu bài viết!")
+  }
 
   const handleShare = () => {
     navigator.clipboard?.writeText(window.location.href)
@@ -73,45 +99,116 @@ export function PostCard({ post, onToggleLike }: PostCardProps) {
             <span className="text-xs text-muted-foreground">{post.timeAgo}</span>
           </div>
         </div>
-        <Button
-          aria-label="Tùy chọn bài viết"
-          className="text-muted-foreground"
-          size="icon-sm"
-          variant="ghost"
-        >
-          <MoreHorizontal aria-hidden="true" className="size-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label="Tùy chọn bài viết"
+            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+          >
+            <MoreHorizontal aria-hidden="true" className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 text-xs">
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 py-2"
+              onClick={handleToggleSave}
+            >
+              <Bookmark className="size-4 text-muted-foreground" />
+              <span>{isSaved ? "Bỏ lưu bài viết" : "Lưu bài viết"}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 py-2"
+              onClick={handleShare}
+            >
+              <Share2 className="size-4 text-muted-foreground" />
+              <span>Sao chép liên kết</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 py-2"
+              onClick={() => toast.info("Đã ẩn bài viết khỏi bảng tin")}
+            >
+              <EyeOff className="size-4 text-muted-foreground" />
+              <span>Ẩn bài viết này</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 py-2 text-destructive focus:text-destructive"
+              onClick={() => toast.error("Đã gửi báo cáo bài viết vi phạm")}
+              variant="destructive"
+            >
+              <Flag className="size-4 text-destructive" />
+              <span>Báo cáo bài viết</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
 
       <CardContent className="px-5 pb-5">
         <div className="w-full flex flex-col gap-3">
-          {post.cameraMetadata && (
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            {/* Style Badge */}
+            {post.styleLabel && (
               <Badge
-                className="gap-1 rounded-md bg-muted/80 text-muted-foreground font-normal hover:bg-muted"
-                variant="secondary"
-              >
-                <Camera className="size-3" />
-                <span>{post.cameraMetadata.camera}</span>
-              </Badge>
-              <Badge
-                className="rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 font-medium"
+                className="gap-1 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20 font-medium hover:bg-purple-500/20 cursor-pointer transition-colors"
+                onClick={() => onSelectFilter?.(post.style ?? "")}
+                title={`Lọc theo phong cách ${post.styleLabel}`}
                 variant="outline"
               >
-                {post.cameraMetadata.filmStock}
+                <Sparkles className="size-3" />
+                <span>{post.styleLabel}</span>
               </Badge>
-              {post.cameraMetadata.devProcess && (
-                <Badge className="rounded-md font-normal text-muted-foreground" variant="outline">
-                  {post.cameraMetadata.devProcess}
+            )}
+
+            {/* Camera Metadata Badges */}
+            {post.cameraMetadata && (
+              <>
+                <Badge
+                  className="gap-1 rounded-md bg-muted/80 text-muted-foreground font-normal hover:bg-muted cursor-pointer transition-colors"
+                  onClick={() => onSelectFilter?.(post.cameraMetadata!.camera)}
+                  title={`Lọc theo máy ảnh ${post.cameraMetadata.camera}`}
+                  variant="secondary"
+                >
+                  <Camera className="size-3" />
+                  <span>{post.cameraMetadata.camera}</span>
                 </Badge>
-              )}
-              {post.cameraMetadata.lab && (
-                <span className="text-[11px] text-muted-foreground pl-1">
-                  @ {post.cameraMetadata.lab}
-                </span>
-              )}
-            </div>
-          )}
+                <Badge
+                  className="rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 font-medium hover:bg-amber-500/20 cursor-pointer transition-colors"
+                  onClick={() => onSelectFilter?.(post.cameraMetadata!.filmStock)}
+                  title={`Lọc theo dòng phim ${post.cameraMetadata.filmStock}`}
+                  variant="outline"
+                >
+                  {post.cameraMetadata.filmStock}
+                </Badge>
+                {post.cameraMetadata.devProcess && (
+                  <Badge
+                    className="rounded-md font-normal text-muted-foreground hover:bg-muted cursor-pointer transition-colors"
+                    onClick={() => onSelectFilter?.(post.cameraMetadata!.devProcess!)}
+                    title={`Lọc theo quy trình ${post.cameraMetadata.devProcess}`}
+                    variant="outline"
+                  >
+                    {post.cameraMetadata.devProcess}
+                  </Badge>
+                )}
+                {post.cameraMetadata.iso && (
+                  <Badge
+                    className="rounded-md font-mono text-[10px] bg-muted/50 text-muted-foreground hover:bg-muted cursor-pointer transition-colors"
+                    onClick={() => onSelectFilter?.(post.cameraMetadata!.iso!.toString())}
+                    title={`Lọc theo độ nhạy sáng ISO ${post.cameraMetadata.iso}`}
+                    variant="outline"
+                  >
+                    ISO {post.cameraMetadata.iso}
+                  </Badge>
+                )}
+                {post.cameraMetadata.lab && (
+                  <span
+                    className="text-[11px] text-muted-foreground hover:text-foreground hover:underline cursor-pointer transition-colors pl-1"
+                    onClick={() => onSelectFilter?.(post.cameraMetadata!.lab!)}
+                    title={`Lọc bài viết theo Lab ${post.cameraMetadata.lab}`}
+                  >
+                    @ {post.cameraMetadata.lab}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
 
           <p className="text-[15px] leading-relaxed text-foreground whitespace-pre-line">
             {post.content}
@@ -125,8 +222,8 @@ export function PostCard({ post, onToggleLike }: PostCardProps) {
                 loading="lazy"
                 src={post.imageUrl}
               />
-              <span className="absolute bottom-2.5 right-2.5 rounded-md bg-black/60 backdrop-blur-md px-2 py-0.5 text-[11px] font-medium text-white">
-                Film 35mm
+              <span className="absolute bottom-2.5 right-2.5 rounded-md bg-black/60 backdrop-blur-md px-2 py-0.5 text-[11px] font-medium text-white shadow">
+                {post.cameraMetadata?.format ? `Khổ ${post.cameraMetadata.format}` : "Film 35mm"}
               </span>
             </div>
           )}
@@ -134,7 +231,12 @@ export function PostCard({ post, onToggleLike }: PostCardProps) {
           {post.tags && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
               {post.tags.map((tag) => (
-                <span className="text-xs text-[rgb(74,93,249)] hover:underline cursor-pointer" key={tag}>
+                <span
+                  className="text-xs text-[rgb(74,93,249)] hover:underline cursor-pointer font-medium transition-colors"
+                  key={tag}
+                  onClick={() => onSelectFilter?.(tag)}
+                  title={`Lọc bài viết theo tag ${tag}`}
+                >
                   {tag}
                 </span>
               ))}

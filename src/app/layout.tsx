@@ -27,7 +27,6 @@ export default function RootLayout({
       className={`${geistSans.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-white text-zinc-900 antialiased selection:bg-rose-100 selection:text-rose-900">
-        <Header />
         <main className="flex-1">{children}</main>
         <ToastProvider />
       </body>

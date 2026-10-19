@@ -20,6 +20,7 @@ export type NavRole = "user" | "lab-owner"
 export const USER_NAV: NavItem[] = [
   { label: "Home", href: "/feed", icon: "home" },
   { label: "Search", href: "/search", icon: "search" },
+  { label: "My Orders", href: "/orders", icon: "clipboard-list" },
 ]
 
 export const LAB_OWNER_NAV: NavItem[] = [

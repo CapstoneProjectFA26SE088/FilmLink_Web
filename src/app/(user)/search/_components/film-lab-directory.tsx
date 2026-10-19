@@ -39,6 +39,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { saveCustomerOrder } from "@/lib/customer-orders"
+import { addUserNotification } from "@/lib/user-notifications"
 import { type DetailedFilmLab, MOCK_FILM_LABS } from "../../mock_data"
 
 type BookingStage = "details" | "order" | "confirmation"
@@ -588,12 +589,25 @@ function OrderConfirmation({ lab, onClose }: { lab: DetailedFilmLab; onClose: ()
   )
 }
 
-interface FilmLabDirectoryProps {
+export interface FilmLabDirectoryProps {
   searchQuery?: string
   filterChip?: string
+  cityFilter?: string
+  processFilter?: string
+  turnaroundFilter?: string
+  mailInOnly?: boolean
+  sortBy?: "rating" | "turnaround" | "reviews"
 }
 
-export function FilmLabDirectory({ searchQuery = "", filterChip = "" }: FilmLabDirectoryProps) {
+export function FilmLabDirectory({
+  searchQuery = "",
+  filterChip = "",
+  cityFilter = "all",
+  processFilter = "all",
+  turnaroundFilter = "all",
+  mailInOnly = false,
+  sortBy = "rating",
+}: FilmLabDirectoryProps) {
   const [selectedLab, setSelectedLab] = useState<DetailedFilmLab | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [stage, setStage] = useState<BookingStage>("details")
@@ -601,8 +615,8 @@ export function FilmLabDirectory({ searchQuery = "", filterChip = "" }: FilmLabD
   const [formError, setFormError] = useState("")
 
   const filteredLabs = useMemo(() => {
-    return MOCK_FILM_LABS.filter((lab) => {
-      // Filter by chip if selected
+    let result = MOCK_FILM_LABS.filter((lab) => {
+      // 1. Filter by chip if selected
       if (filterChip && filterChip !== "All Labs") {
         const chip = filterChip.toLowerCase()
         const matchCity = lab.city.toLowerCase().includes(chip)
@@ -615,7 +629,34 @@ export function FilmLabDirectory({ searchQuery = "", filterChip = "" }: FilmLabD
         }
       }
 
-      // Filter by text search query
+      // 2. City Filter
+      if (cityFilter !== "all") {
+        if (!lab.city.toLowerCase().includes(cityFilter.toLowerCase())) {
+          return false
+        }
+      }
+
+      // 3. Process Filter
+      if (processFilter !== "all") {
+        const hasProcess = lab.processes.some((p) =>
+          p.toLowerCase().includes(processFilter.toLowerCase())
+        )
+        if (!hasProcess) return false
+      }
+
+      // 4. Turnaround Filter
+      if (turnaroundFilter !== "all") {
+        if (turnaroundFilter === "same_day" && lab.turnaround !== "Same Day") return false
+        if (turnaroundFilter === "1_2_days" && !lab.turnaround.includes("1-2")) return false
+        if (turnaroundFilter === "3_5_days" && !lab.turnaround.includes("3-5")) return false
+      }
+
+      // 5. Mail-in only
+      if (mailInOnly && !lab.acceptsMailIn) {
+        return false
+      }
+
+      // 6. Text search query
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim()
         const matchName = lab.name.toLowerCase().includes(query)
@@ -629,7 +670,18 @@ export function FilmLabDirectory({ searchQuery = "", filterChip = "" }: FilmLabD
 
       return true
     })
-  }, [searchQuery, filterChip])
+
+    // Sorting
+    if (sortBy === "rating") {
+      result.sort((a, b) => b.rating - a.rating)
+    } else if (sortBy === "reviews") {
+      result.sort((a, b) => b.reviewCount - a.reviewCount)
+    } else if (sortBy === "turnaround") {
+      result.sort((a, b) => (a.turnaround === "Same Day" ? -1 : 1))
+    }
+
+    return result
+  }, [searchQuery, filterChip, cityFilter, processFilter, turnaroundFilter, mailInOnly, sortBy])
 
   function selectLab(lab: DetailedFilmLab) {
     setSelectedLab(lab)
@@ -654,8 +706,10 @@ export function FilmLabDirectory({ searchQuery = "", filterChip = "" }: FilmLabD
     }
     if (!selectedLab) return
 
+    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`
+
     saveCustomerOrder({
-      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: orderId,
       labId: selectedLab.id,
       labName: selectedLab.name,
       ...form,
@@ -663,8 +717,18 @@ export function FilmLabDirectory({ searchQuery = "", filterChip = "" }: FilmLabD
       status: "pending",
       workflowStage: 0,
     })
+
+    // Gửi thông báo cho user
+    addUserNotification({
+      orderId,
+      labName: selectedLab.name,
+      title: "Đơn tráng mới đã gửi",
+      message: `Đơn #${orderId} (${form.filmName}) đã gửi tới ${selectedLab.name}. Lab sẽ sớm xác nhận đơn của bạn.`,
+      type: "order_created",
+    })
+
     setStage("confirmation")
-    toast.success("Đơn đặt tráng đã được ghi nhận vào hàng đợi xử lý của Lab!")
+    toast.success("Đơn đặt tráng đã được gửi tới Lab thành công!")
   }
 
   function closeDialog() {
