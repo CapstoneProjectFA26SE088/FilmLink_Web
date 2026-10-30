@@ -3,16 +3,16 @@ import { z } from "zod"
 // 1. Server-only environment variables
 const serverSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  GOOGLE_CLIENT_ID: z.string().min(1, "Google Client ID is required"),
-  GOOGLE_CLIENT_SECRET: z.string().min(1, "Google Client Secret is required"),
-  AUTH_SECRET: z.string().min(1, "Auth Secret is required"),
-  BACKEND_API_BASE_URL: z.string().url("Invalid Backend API URL"),
+  GOOGLE_CLIENT_ID: z.string().optional().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
+  AUTH_SECRET: z.string().optional().default(""),
+  BACKEND_API_BASE_URL: z.string().url("Invalid Backend API URL").default("http://localhost:8080"),
 })
 
 // 2. Client-accessible environment variables (prefixed with NEXT_PUBLIC_)
 const clientSchema = z.object({
-  NEXT_PUBLIC_API_URL: z.string().url("Invalid Public API URL"),
-  NEXT_PUBLIC_APP_NAME: z.string().min(1, "App name is required"),
+  NEXT_PUBLIC_API_URL: z.string().url("Invalid Public API URL").default("http://localhost:8080"),
+  NEXT_PUBLIC_APP_NAME: z.string().min(1, "App name is required").default("FilmLink"),
 })
 
 const isServer = typeof window === "undefined"

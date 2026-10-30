@@ -102,7 +102,11 @@ export function Header() {
     pathname === "/search" ||
     pathname.startsWith("/search/") ||
     pathname === "/film-lab-owner" ||
-    pathname.startsWith("/film-lab-owner/")
+    pathname.startsWith("/film-lab-owner/") ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    pathname === "/mod" ||
+    pathname.startsWith("/mod/")
   ) {
     return null
   }

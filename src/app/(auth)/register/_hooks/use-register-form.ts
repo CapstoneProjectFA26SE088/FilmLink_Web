@@ -1,76 +1,105 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useState } from "react"
-import type { AccountType, IAuthFormErrors, IRegisterFormData } from "@/types"
+import { postAuth } from "@/lib/auth/client"
+import { type BackendRole, getRoleHome } from "@/lib/auth/roles"
+import type { IAuthFormErrors, IRegisterFormData } from "@/types"
 
-export interface UseRegisterFormOptions {
-  onSuccess?: (data: IRegisterFormData) => void
-}
-
-export function useRegisterForm(options: UseRegisterFormOptions = {}) {
+export function useRegisterForm() {
+  const router = useRouter()
   const [formData, setFormData] = useState<IRegisterFormData>({
-    accountType: "photographer",
-    fullName: "Ansel Adams",
-    email: "photographer@leicaworks.com",
+    fullName: "",
+    email: "",
+    phoneNumber: "",
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
   })
-
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState<IAuthFormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [otp, setOtp] = useState("")
 
-  const handleChange = (field: keyof IRegisterFormData, value: string | boolean | AccountType) => {
+  const handleChange = (field: keyof IRegisterFormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field as keyof IAuthFormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
+      setErrors((prev) => ({ ...prev, [field]: undefined, general: undefined }))
     }
   }
 
-  const validate = (): boolean => {
-    const newErrors: IAuthFormErrors = {}
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required"
+  const validate = () => {
+    const nextErrors: IAuthFormErrors = {}
+    if (formData.fullName.trim().length < 2 || formData.fullName.trim().length > 100) {
+      nextErrors.fullName = "Enter a name between 2 and 100 characters"
     }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email address is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+    if (!formData.email.trim()) nextErrors.email = "Email address is required"
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      nextErrors.email = "Please enter a valid email address"
     }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required"
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters"
+    if (formData.phoneNumber.trim().length > 15) {
+      nextErrors.phoneNumber = "Phone number must be 15 characters or fewer"
     }
-
+    if (formData.password.length < 8 || formData.password.length > 72) {
+      nextErrors.password = "Password must be between 8 and 72 characters"
+    } else if (!/[A-Za-z]/.test(formData.password) || !/\d/.test(formData.password)) {
+      nextErrors.password = "Use at least one letter and one number"
+    }
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
+      nextErrors.confirmPassword = "Passwords do not match"
     }
-
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = "You must agree to the Terms of Service"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    if (!formData.agreeToTerms) nextErrors.agreeToTerms = "You must agree to the Terms of Service"
+    setErrors(nextErrors)
+    return Object.keys(nextErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     if (!validate()) return
 
     setIsSubmitting(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      options.onSuccess?.(formData)
-    } finally {
-      setIsSubmitting(false)
+    setErrors({})
+    const result = await postAuth("register", {
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      ...(formData.phoneNumber.trim() ? { phoneNumber: formData.phoneNumber.trim() } : {}),
+      password: formData.password,
+      termsAccepted: true,
+    })
+    setIsSubmitting(false)
+
+    if (!result.ok) {
+      setErrors({ general: result.message })
+      return
     }
+
+    setIsVerifying(true)
+  }
+
+  const handleVerify = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!/^\d{6}$/.test(otp)) {
+      setErrors({ otp: "Enter the six-digit verification code" })
+      return
+    }
+
+    setIsSubmitting(true)
+    setErrors({})
+    const result = await postAuth<{ role: BackendRole }>("verify-email", {
+      email: formData.email.trim(),
+      otp,
+    })
+    setIsSubmitting(false)
+
+    if (!result.ok) {
+      setErrors({ otp: result.message })
+      return
+    }
+
+    router.replace(getRoleHome(result.data.role))
+    router.refresh()
   }
 
   return {
@@ -79,9 +108,14 @@ export function useRegisterForm(options: UseRegisterFormOptions = {}) {
     showConfirmPassword,
     errors,
     isSubmitting,
+    isVerifying,
+    otp,
+    setOtp: (value: string) => setOtp(value.replace(/\D/g, "").slice(0, 6)),
+    setIsVerifying,
     setShowPassword,
     setShowConfirmPassword,
     handleChange,
     handleSubmit,
+    handleVerify,
   }
 }

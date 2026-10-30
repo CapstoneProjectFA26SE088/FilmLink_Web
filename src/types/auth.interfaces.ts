@@ -1,8 +1,4 @@
-import type { AccountType } from "./auth.types"
-
-/**
- * Pure TypeScript interfaces for Login and Registration domain objects.
- */
+import type { BackendRole } from "@/lib/auth/roles"
 
 export interface ILoginFormData {
   email: string
@@ -11,9 +7,9 @@ export interface ILoginFormData {
 }
 
 export interface IRegisterFormData {
-  accountType: AccountType
   fullName: string
   email: string
+  phoneNumber: string
   password: string
   confirmPassword: string
   agreeToTerms: boolean
@@ -22,20 +18,15 @@ export interface IRegisterFormData {
 export interface IAuthFormErrors {
   fullName?: string
   email?: string
+  phoneNumber?: string
   password?: string
   confirmPassword?: string
   agreeToTerms?: string
+  otp?: string
   general?: string
 }
 
-export interface IAuthResponse {
-  success: boolean
-  message?: string
-  token?: string
-  user?: {
-    id: string
-    email: string
-    name: string
-    accountType: AccountType
-  }
+export interface IAuthSessionResponse {
+  success: true
+  role: BackendRole
 }

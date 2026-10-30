@@ -2,6 +2,8 @@
  * Shared API and Data Contracts
  */
 
+import type { BackendRole } from "@/lib/auth/roles"
+
 export interface ApiResponse<T = unknown> {
   data: T | null
   error: string | null
@@ -20,7 +22,7 @@ export interface UserSession {
   id: string
   email: string
   name?: string
-  role?: "user" | "admin"
+  role?: BackendRole
   avatarUrl?: string
 }
 

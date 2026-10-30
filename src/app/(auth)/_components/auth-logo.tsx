@@ -31,7 +31,7 @@ export function AuthLogo() {
       </div>
 
       <span className="text-xl font-extrabold tracking-tight text-zinc-900">
-        Film<span className="text-[#D94848]">Flow</span>
+        Film<span className="text-[#D94848]">Link</span>
       </span>
     </Link>
   )
