@@ -29,7 +29,7 @@ export function WorkspaceShell<T extends string = Section>({
 }: {
 	account: Account | null;
 	active: T;
-	mode: "guest" | "user" | "lab-owner";
+	mode: "guest" | "user" | "lab-owner" | "admin";
 	orderCount?: number;
 	homeHref?: string;
 	accountRoleLabel?: string;
@@ -66,7 +66,7 @@ export function WorkspaceShell<T extends string = Section>({
 				<WorkspaceSidebar
 					active={active}
 					account={account}
-					homeHref={homeHref ?? (mode === "user" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : "/")}
+					homeHref={homeHref ?? (mode === "user" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
 					orderCount={orderCount}
 					showOrderCount={mode === "user"}
 					navigationItems={navigationItems}
@@ -101,7 +101,7 @@ export function WorkspaceShell<T extends string = Section>({
 						<WorkspaceSidebar
 							active={active}
 							account={account}
-							homeHref={homeHref ?? (mode === "user" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : "/")}
+						homeHref={homeHref ?? (mode === "user" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
 							orderCount={orderCount}
 							showOrderCount={mode === "user"}
 							navigationItems={navigationItems}

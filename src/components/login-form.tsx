@@ -59,9 +59,13 @@ export function LoginForm({
         ? ((await accountResponse.json()) as AccountResponse)
         : null
 
-      router.replace(
-        account?.role === "FILM_LAB_OWNER" ? "/lab-owner" : "/dashboard",
-      )
+      const destination =
+        account?.role === "ADMIN"
+          ? "/admin"
+          : account?.role === "FILM_LAB_OWNER"
+            ? "/lab-owner"
+            : "/dashboard"
+      router.replace(destination)
       router.refresh()
     } catch {
       setError("Không kết nối được máy chủ. Vui lòng thử lại sau.")
