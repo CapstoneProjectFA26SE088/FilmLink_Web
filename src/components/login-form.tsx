@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input"
 
 type ApiError = { message?: string }
+type AccountResponse = { role?: string }
 
 export function LoginForm({
   className,
@@ -53,7 +54,14 @@ export function LoginForm({
         return
       }
 
-      router.replace("/")
+      const accountResponse = await fetch("/api/auth/me", { cache: "no-store" })
+      const account = accountResponse.ok
+        ? ((await accountResponse.json()) as AccountResponse)
+        : null
+
+      router.replace(
+        account?.role === "FILM_LAB_OWNER" ? "/lab-owner" : "/dashboard",
+      )
       router.refresh()
     } catch {
       setError("Không kết nối được máy chủ. Vui lòng thử lại sau.")

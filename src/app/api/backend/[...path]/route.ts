@@ -137,7 +137,13 @@ async function proxy(request: NextRequest, context: RouteContext) {
         : backendResponse.body,
       { status: backendResponse.status, headers }
     )
-    if (rotatedTokens) await storeSessionCookies(response, rotatedTokens)
+    const passwordChanged =
+      method === "PUT" && path.join("/") === "accounts/me/password" && backendResponse.ok
+    if (passwordChanged) {
+      clearSessionCookies(response)
+    } else if (rotatedTokens) {
+      await storeSessionCookies(response, rotatedTokens)
+    }
     return response
   } catch {
     return requestFailed()
