@@ -1,0 +1,24 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { demoConsignments, formatVnd } from "../data/fixtures";
+import styles from "../lab-owner-pages.module.css";
+
+type Consignment = (typeof demoConsignments)[number] & { grade: string };
+
+export function ConsignmentsPage() {
+	const [items, setItems] = useState<Consignment[]>(demoConsignments);
+	const [query, setQuery] = useState("");
+	const [tab, setTab] = useState("Tất cả");
+	const filtered = useMemo(() => items.filter((item) => `${item.name} ${item.owner}`.toLocaleLowerCase("vi").includes(query.toLocaleLowerCase("vi")) && (tab === "Tất cả" || item.grade === tab)), [items, query, tab]);
+	const updateStatus = (id: string, grade: string) => setItems((current) => current.map((item) => item.id === id ? { ...item, grade } : item));
+
+	return <div className={styles.page}>
+		<header className={styles.heading}><div><p className={styles.eyebrow}>Ký gửi thiết bị</p><h1>Kho hàng ký gửi</h1><p>Kiểm định tình trạng, lưu vị trí và theo dõi hàng đang trưng bày.</p></div><Button onClick={() => setItems((current) => [...current, { id: `KG-0${current.length + 1}`, name: "Máy ảnh ký gửi mới", price: 0, grade: "Chờ kiểm định", storage: "Khu tiếp nhận", date: "01/11/2026", owner: "Khách hàng mới" }])}>Nhận sản phẩm</Button></header>
+		<p className={styles.demoNote}>Thông tin ký gửi hiện là dữ liệu minh họa. Các thao tác kiểm định, đăng bán và bàn giao chưa cập nhật hệ thống backend.</p>
+		<section className={styles.stats}><div className={styles.stat}><span>Đang giữ tại lab</span><strong>{items.length}</strong></div><div className={styles.stat}><span>Chờ kiểm định</span><strong>{items.filter((item) => item.grade === "Chờ kiểm định").length}</strong></div><div className={styles.stat}><span>Đang trưng bày</span><strong>{items.filter((item) => item.grade === "Đang bán").length}</strong></div><div className={styles.stat}><span>Giá trị đang bán</span><strong>{formatVnd(items.filter((item) => item.grade === "Đang bán").reduce((sum, item) => sum + item.price, 0))}</strong></div></section>
+		<section className={styles.panel}><div className={styles.panelHeader}><div><h2>Thiết bị giữ tại lab</h2><p>Ghi nhận từng món cùng người gửi và lịch hẹn.</p></div></div><div className={styles.tools}><input className={styles.search} aria-label="Tìm sản phẩm" placeholder="Tìm tên sản phẩm hoặc người gửi" value={query} onChange={(event) => setQuery(event.target.value)} /><select className={styles.select} aria-label="Lọc tình trạng" value={tab} onChange={(event) => setTab(event.target.value)}>{["Tất cả", "Chờ kiểm định", "Đang bán", "Đã bàn giao"].map((item) => <option key={item}>{item}</option>)}</select></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Sản phẩm</th><th>Người gửi</th><th>Vị trí / lịch hẹn</th><th>Giá niêm yết</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{filtered.map((item) => <tr key={item.id}><td>{item.name}<small>{item.id}</small></td><td>{item.owner}</td><td>{item.storage}<small>{item.date}</small></td><td>{formatVnd(item.price)}</td><td><span className={`${styles.badge} ${item.grade === "Đang bán" ? styles.badgeSuccess : item.grade === "Chờ kiểm định" ? styles.badgeWarning : styles.badge}`}>{item.grade}</span></td><td><div className={styles.tableActions}>{item.grade === "Chờ kiểm định" ? <Button size="sm" onClick={() => updateStatus(item.id, "Đang bán")}>Kiểm định & đăng bán</Button> : item.grade === "Đang bán" ? <Button size="sm" variant="outline" onClick={() => updateStatus(item.id, "Đã bàn giao")}>Bàn giao</Button> : <Button size="sm" variant="outline" onClick={() => updateStatus(item.id, "Đang bán")}>Mở lại tin</Button>}</div></td></tr>)}{filtered.length === 0 && <tr><td colSpan={6} className={styles.empty}>Không có sản phẩm phù hợp.</td></tr>}</tbody></table></div></section>
+		<section className={styles.details}><article className={styles.panel}><div className={styles.panelHeader}><div><h2>Quy trình ký gửi</h2><p>Theo dõi món hàng từ lúc tiếp nhận đến khi đối soát.</p></div></div><div className={styles.timeline}>{["Tiếp nhận sản phẩm", "Kiểm định & lập báo cáo", "Thống nhất giá", "Đăng bán tại lab", "Bàn giao và đối soát"].map((step, index) => <div className={`${styles.timelineStep} ${index < 2 ? styles.timelineStepActive : ""}`} key={step}><span className={styles.timelineDot} />{step}</div>)}</div></article><aside className={styles.panel}><div className={styles.panelHeader}><h2>Phí giao dịch</h2></div><div className={styles.detailBody}><div className={styles.detailLine}><span>Phí lab tham khảo</span><strong>5%</strong></div><div className={styles.detailLine}><span>Hoa hồng nền tảng</span><strong>5%</strong></div><p className={styles.demoNote}>Payout mẫu được mở sau thời hạn trả hàng 7 ngày.</p></div></aside></section>
+	</div>;
+}

@@ -1,4 +1,6 @@
 .workspaceFooter { display: flex; align-items: center; gap: 0.45rem; margin-top: 1.2rem; padding-top: 0.75rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.66rem; }
+.workspaceFrame { min-width: 0; }
+.footerAddress { margin-left: auto; text-align: right; }
 .acceptingStatus, .pausedStatus { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--success); }
 .pausedStatus { background: var(--warning); }
 .profileNotice { margin: 0.25rem 0 0.85rem; padding: 0.65rem 0.8rem; border: 1px solid var(--warning); border-radius: 0.55rem; color: var(--warning-foreground); background: var(--warning-soft); font-size: 0.78rem; }
@@ -50,9 +52,6 @@
 .revenueItem strong { color: var(--text-secondary); font-size: 0.65rem; font-weight: 550; }
 .progressTrack { height: 0.48rem; overflow: hidden; border-radius: 999px; background: var(--surface-hover); }
 .progressTrack span { display: block; height: 100%; border-radius: inherit; background: var(--success); }
-.sectionPlaceholder { max-width: 48rem; margin-top: 2rem; padding: 1.3rem 0; border-top: 1px solid var(--border); }
-.sectionPlaceholder h2 { margin: 0 0 0.5rem; font-size: 1.15rem; }
-.sectionPlaceholder p { max-width: 34rem; color: var(--text-secondary); font-size: 0.82rem; line-height: 1.55; }
 .loading, .workspaceError { display: grid; min-height: 100vh; place-items: center; padding: 1.5rem; color: var(--text-secondary); }
 .workspaceError > div { max-width: 30rem; padding: 1.3rem; border: 1px solid var(--border); border-radius: 0.8rem; background: var(--surface); }
 .workspaceError h1 { margin: 0 0 0.45rem; color: var(--foreground); font-size: 1.15rem; }
@@ -94,6 +93,7 @@
 	.ordersTable { min-width: 37rem; }
 	.tableFooter { flex-wrap: wrap; gap: 0.5rem; }
 	.rail { grid-template-columns: 1fr; gap: 1.1rem; }
+	.footerAddress { margin-left: 0; text-align: left; }
 }
 
 @media (prefers-reduced-motion: reduce) {

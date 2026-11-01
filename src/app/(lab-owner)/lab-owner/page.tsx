@@ -1,5 +1,5 @@
-import { LabOwnerDashboard } from "@/components/lab-owner/lab-owner-dashboard";
+import { LabOwnerDashboardPage } from "@/components/lab-owner/dashboard";
 
 export default function FilmLabOwnerPage() {
-	return <LabOwnerDashboard />;
+	return <LabOwnerDashboardPage />;
 }

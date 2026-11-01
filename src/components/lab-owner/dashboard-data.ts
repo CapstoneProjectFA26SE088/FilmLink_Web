@@ -3,6 +3,7 @@ import {
 	CalendarDays,
 	ChartColumnIncreasing,
 	ClipboardList,
+	ContactRound,
 	LayoutDashboard,
 	SlidersHorizontal,
 	UsersRound,
@@ -19,7 +20,8 @@ export type LabOwnerSection =
 	| "consignments"
 	| "revenue"
 	| "customers"
-	| "settlements";
+	| "settlements"
+	| "profile";
 
 export type LabOwnerOrder = {
 	id: string;
@@ -36,6 +38,7 @@ export const labOwnerNavigation: { id: LabOwnerSection; label: string; icon: Luc
 	{ id: "revenue", label: "Doanh thu", icon: ChartColumnIncreasing },
 	{ id: "customers", label: "Khách hàng", icon: UsersRound },
 	{ id: "settlements", label: "Công nợ", icon: WalletCards },
+	{ id: "profile", label: "Hồ sơ Film Lab", icon: ContactRound },
 ];
 
 // Dữ liệu minh hoạ cho đến khi backend có API đơn hàng và báo cáo Film Lab.

@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { labOwnerOrders, labOwnerServices, type LabOwnerOrder, type LabOwnerSection } from "./dashboard-data";
-import styles from "./lab-owner-dashboard.module.css";
+import { labOwnerOrders, labOwnerServices, type LabOwnerOrder, type LabOwnerSection } from "../dashboard-data";
+import styles from "../lab-owner-dashboard.module.css";
+import pageStyles from "../lab-owner-pages.module.css";
 
 const statuses = ["Tất cả", "Đang xử lý", "Chờ tiếp nhận", "Hoàn tất", "Đã hủy"] as const;
 const statusClassName: Record<LabOwnerOrder["status"], string> = {
@@ -21,12 +22,14 @@ export function LabOwnerOverview({
 	query,
 	onQueryChange,
 	onNavigate,
+	onProfile,
 }: {
 	labName: string;
 	address: string;
 	query: string;
 	onQueryChange: (value: string) => void;
 	onNavigate: (section: LabOwnerSection) => void;
+	onProfile: () => void;
 }) {
 	const [status, setStatus] = useState<(typeof statuses)[number]>("Tất cả");
 	const [selectedOrder, setSelectedOrder] = useState<LabOwnerOrder | null>(null);
@@ -53,8 +56,9 @@ export function LabOwnerOverview({
 					<h1>Bảng điều khiển Film Lab</h1>
 					<p>{address || `Không gian vận hành ${labName}`}</p>
 				</div>
-				<Button variant="outline" type="button" onClick={() => onNavigate("overview")}>Quay lại</Button>
+				<Button variant="outline" type="button" onClick={onProfile}>Hồ sơ Film Lab</Button>
 			</div>
+			<p className={pageStyles.demoNote}>Số liệu đơn và doanh thu là dữ liệu minh họa trong prototype; hồ sơ lab được tải từ tài khoản hiện tại.</p>
 
 			<section className={styles.metrics} aria-label="Tóm tắt hoạt động">
 				<div><span>Đơn dịch vụ</span><strong>4</strong></div>

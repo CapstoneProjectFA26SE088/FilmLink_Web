@@ -15,6 +15,7 @@ import {
 const METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"])
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"])
 const MAX_JSON_BYTES = 1_000_000
+const MAX_LAB_IMAGE_BYTES = 10 * 1024 * 1024
 
 type RouteContext = { params: Promise<{ path: string[] }> }
 
@@ -23,7 +24,7 @@ async function callBackend(
   method: string,
   accessToken: string,
   contentType: string | null,
-  body: string | undefined
+  body: BodyInit | undefined
 ) {
   const headers = new Headers({
     authorization: `Bearer ${accessToken}`,
@@ -69,26 +70,50 @@ async function proxy(request: NextRequest, context: RouteContext) {
     )
   }
 
-  let body: string | undefined
+  let body: BodyInit | undefined
   let contentType: string | null = null
   if (
     WRITE_METHODS.has(method) &&
     (method !== "DELETE" || Number(request.headers.get("content-length") || 0) > 0)
   ) {
-    const length = Number(request.headers.get("content-length") || 0)
-    if (length > MAX_JSON_BYTES) {
-      return NextResponse.json({ message: "Request body vượt quá giới hạn." }, { status: 413 })
-    }
-    contentType = request.headers.get("content-type")
-    if (contentType?.toLowerCase().split(";", 1)[0].trim() !== "application/json") {
-      return NextResponse.json(
-        { message: "BFF hiện chỉ nhận JSON; tải tệp cần endpoint chuyên biệt." },
-        { status: 415 }
-      )
-    }
-    body = await request.text()
-    if (new TextEncoder().encode(body).byteLength > MAX_JSON_BYTES) {
-      return NextResponse.json({ message: "Request body vượt quá giới hạn." }, { status: 413 })
+    const backendPath = path.join("/")
+    if (method === "POST" && backendPath === "film-labs/me/images") {
+      const length = Number(request.headers.get("content-length") || 0)
+      if (length > MAX_LAB_IMAGE_BYTES + 64 * 1024) {
+        return NextResponse.json({ message: "Ảnh không được vượt quá 10 MB." }, { status: 413 })
+      }
+      let incoming: FormData
+      try {
+        incoming = await request.formData()
+      } catch {
+        return NextResponse.json({ message: "Dữ liệu tải ảnh không hợp lệ." }, { status: 400 })
+      }
+      const file = incoming.get("file")
+      if (!(file instanceof File) || file.size === 0 || file.size > MAX_LAB_IMAGE_BYTES) {
+        return NextResponse.json(
+          { message: "Vui lòng chọn một ảnh JPG hoặc PNG tối đa 10 MB." },
+          { status: 400 }
+        )
+      }
+      const outgoing = new FormData()
+      outgoing.append("file", file, file.name)
+      body = outgoing
+    } else {
+      const length = Number(request.headers.get("content-length") || 0)
+      if (length > MAX_JSON_BYTES) {
+        return NextResponse.json({ message: "Request body vượt quá giới hạn." }, { status: 413 })
+      }
+      contentType = request.headers.get("content-type")
+      if (contentType?.toLowerCase().split(";", 1)[0].trim() !== "application/json") {
+        return NextResponse.json(
+          { message: "BFF hiện chỉ nhận JSON; tải tệp cần endpoint chuyên biệt." },
+          { status: 415 }
+        )
+      }
+      body = await request.text()
+      if (new TextEncoder().encode(body).byteLength > MAX_JSON_BYTES) {
+        return NextResponse.json({ message: "Request body vượt quá giới hạn." }, { status: 413 })
+      }
     }
   }
 
