@@ -74,7 +74,7 @@ export function AuditLogPage() {
 	}
 
 	return <div className={styles.page}>
-		<header className={styles.heading}><div><p className={styles.eyebrow}>BR-32 · CR-16</p><h1>Audit Log</h1><p>Lịch sử các thao tác nhạy cảm, sắp xếp mới nhất trước.</p></div><Button variant="outline" disabled={loading} onClick={() => void load()}>{loading ? "Đang tải…" : "Tải lại"}</Button></header>
+		<header className={styles.heading}><div><p className={styles.eyebrow}>BR-32 · CR-16</p><h1>Nhật ký hoạt động</h1><p>Lịch sử các thao tác nhạy cảm, sắp xếp mới nhất trước.</p></div><Button variant="outline" disabled={loading} onClick={() => void load()}>{loading ? "Đang tải…" : "Tải lại"}</Button></header>
 		<div className={styles.metrics}><div className={styles.metric}><span>Tổng bản ghi phù hợp</span><strong>{result?.totalElements ?? "—"}</strong></div><div className={styles.metric}><span>Trang hiện tại</span><strong>{result ? `${result.page + 1}/${Math.max(result.totalPages, 1)}` : "—"}</strong></div><div className={styles.metric}><span>Kích thước trang</span><strong>{result?.size ?? 20}</strong></div><div className={styles.metric}><span>Quyền truy cập</span><strong>ADMIN</strong></div></div>
 		<section className={styles.panel}>
 			<form className={styles.tools} onSubmit={applyFilters}>

@@ -11,6 +11,7 @@ import {
 	Database,
 	Flag,
 	Gauge,
+	History,
 	Layers3,
 	Library,
 	UsersRound,
@@ -26,6 +27,7 @@ export type AdminSection =
 	| "labs"
 	| "experts"
 	| "users"
+	| "audit-logs"
 	| "catalog"
 	| "settings"
 	| "subscriptions"
@@ -39,6 +41,7 @@ const navigationItems: { id: AdminSection; label: string; icon: LucideIcon }[] =
 	{ id: "labs", label: "Duyệt Film Lab", icon: Building2 },
 	{ id: "experts", label: "Duyệt chuyên gia", icon: ClipboardCheck },
 	{ id: "users", label: "Người dùng & vai trò", icon: UsersRound },
+	{ id: "audit-logs", label: "Nhật ký hoạt động", icon: History },
 	{ id: "catalog", label: "Dữ liệu danh mục", icon: Database },
 	{ id: "settings", label: "Cấu hình hệ thống", icon: Cog },
 	{ id: "subscriptions", label: "Gói đăng ký", icon: Layers3 },
@@ -53,6 +56,7 @@ const sectionByPath: Record<string, AdminSection> = {
 	"/admin/labs": "labs",
 	"/admin/experts": "experts",
 	"/admin/users": "users",
+	"/admin/audit-logs": "audit-logs",
 	"/admin/catalog": "catalog",
 	"/admin/settings": "settings",
 	"/admin/subscriptions": "subscriptions",
@@ -67,6 +71,7 @@ const pathBySection: Record<AdminSection, string> = {
 	labs: "/admin/labs",
 	experts: "/admin/experts",
 	users: "/admin/users",
+	"audit-logs": "/admin/audit-logs",
 	catalog: "/admin/catalog",
 	settings: "/admin/settings",
 	subscriptions: "/admin/subscriptions",
