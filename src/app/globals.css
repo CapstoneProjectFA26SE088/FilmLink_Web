@@ -677,6 +677,11 @@
 .community-feed-post__author { display: flex; align-items: center; gap: 0.55rem; padding: 0.75rem 0.8rem 0.35rem; }
 .community-feed-post__author > div { display: flex; flex-direction: column; gap: 0.08rem; }
 .community-feed-post__author strong { font-size: 0.7rem; font-weight: 600; }
+.community-expert-badge { display: inline-flex; margin-left: .35rem; padding: .08rem .35rem; border-radius: 999px; color: var(--brand-foreground); background: var(--brand-soft); font-size: .55rem; font-weight: 650; vertical-align: middle; }
+.community-feed-heading__actions { display: flex; align-items: center; gap: .5rem; }
+.community-events-link { display: inline-flex; align-items: center; gap: .35rem; min-height: 2rem; padding: 0 .6rem; border: 1px solid var(--border); border-radius: .55rem; color: var(--text-secondary); font-size: .66rem; text-decoration: none; }
+.community-events-link:hover { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
+.community-events-link svg { width: .85rem; height: .85rem; }
 .community-feed-post__author small { color: var(--text-muted); font-size: 0.62rem; }
 .community-feed-post__copy { padding: 0.35rem 0.8rem 0.65rem; }
 .community-feed-post__copy > strong { display: block; font-size: 0.75rem; font-weight: 500; line-height: 1.5; }

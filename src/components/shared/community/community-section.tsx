@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, Heart, MapPin, MessageCircle, Search, Send, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarDays, Heart, MapPin, MessageCircle, Search, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { posts as initialPosts } from "@/components/shared/model";
+import { readDemoArticles } from "@/components/shared/expert-demo/demo-session";
 
 type FeedPost = {
 	id: string;
@@ -18,30 +19,37 @@ type FeedPost = {
 	color: string;
 	likes: number;
 	comments: number;
+	expert?: boolean;
 };
 
 export function CommunitySection({
 	likedPosts,
 	onLike,
 	accountName,
+	isExpert = false,
 	onExploreLabs,
 	onOpenAssistant,
 }: {
 	likedPosts: string[];
 	onLike: (id: string) => void;
 	accountName?: string;
+	isExpert?: boolean;
 	onExploreLabs?: () => void;
 	onOpenAssistant?: () => void;
 }) {
 	const [search, setSearch] = useState("");
 	const [draft, setDraft] = useState("");
 	const [localPosts, setLocalPosts] = useState<FeedPost[]>([]);
-	const feedPosts = useMemo(() => {
+	const [expertArticles, setExpertArticles] = useState<FeedPost[]>([]);
+	useEffect(() => {
+		setExpertArticles(readDemoArticles().filter((article) => article.status === "Công khai").map((article) => ({ id: article.id, initials: article.author.split(/\s+/).slice(-2).map((part) => part[0]).join("").toUpperCase(), name: article.author, time: "Bài viết Expert", title: article.title, copy: article.content, film: article.category.replaceAll("_", " "), color: "community-photo-one", likes: 0, comments: 0, expert: true })));
+	}, []);
+	const feedPosts = useMemo<FeedPost[]>(() => {
 		const query = search.trim().toLocaleLowerCase("vi-VN");
-		return [...localPosts, ...initialPosts].filter((post) =>
+		return [...localPosts, ...expertArticles, ...initialPosts].filter((post) =>
 			!query || `${post.name} ${post.title} ${post.copy} ${post.film}`.toLocaleLowerCase("vi-VN").includes(query),
 		);
-	}, [localPosts, search]);
+	}, [expertArticles, localPosts, search]);
 	const userInitials = accountName?.split(/\s+/).slice(-2).map((word) => word[0]).join("").toLocaleUpperCase("vi-VN") || "FL";
 
 	function publishPost(event: FormEvent<HTMLFormElement>) {
@@ -69,7 +77,7 @@ export function CommunitySection({
 				<div className="community-feed-column">
 					<div className="community-feed-heading">
 						<div><p className="eyebrow">GÓC NHỎ ANALOG</p><h1>Cộng đồng</h1></div>
-						<span className="community-feed-tab" aria-current="page">For you</span>
+						<div className="community-feed-heading__actions"><span className="community-feed-tab" aria-current="page">For you</span><Link href="/community/events" className="community-events-link"><CalendarDays aria-hidden="true"/>Workshop & Photowalk</Link></div>
 					</div>
 
 					<label className="community-feed-search">
@@ -98,7 +106,7 @@ export function CommunitySection({
 								<article className="community-feed-post" key={post.id}>
 									<header className="community-feed-post__author">
 										<span className={`community-feed-avatar community-feed-avatar--${index % 2}`} aria-hidden="true">{post.initials}</span>
-										<div><strong>{post.name}</strong><small>{post.time}</small></div>
+									<div><strong>{post.name}{(post.expert || (isExpert && post.name === accountName)) && <span className="community-expert-badge">Expert</span>}</strong><small>{post.time}</small></div>
 									</header>
 									<div className="community-feed-post__copy">
 										<strong>{post.title}</strong>

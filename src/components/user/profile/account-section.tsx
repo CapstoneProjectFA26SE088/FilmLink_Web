@@ -1,4 +1,4 @@
-import { ArrowRight, Check, CircleDashed, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, CircleDashed, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { Account } from "@/components/shared/model";
 import { ChangePasswordForm } from "./change-password-form";
@@ -82,6 +82,12 @@ export function AccountSection({
 				</div>
 			</div>
 			{account && <ChangePasswordForm />}
+			{account && account.role === "PHOTOGRAPHER" && (
+				<div className="account-card account-expert-application">
+					<span className="account-avatar"><Sparkles aria-hidden="true" /></span>
+					<div><h2>Đóng góp với vai trò Expert</h2><p>Gửi kinh nghiệm và portfolio để Admin xem xét nâng cấp vai trò trên tài khoản hiện tại.</p><Link href="/expert-application" className="account-primary">Tìm hiểu và đăng ký <ArrowRight aria-hidden="true" /></Link></div>
+				</div>
+			)}
 			<section className="account-integration" aria-labelledby="account-integration-title">
 				<div className="account-integration__heading">
 					<div>

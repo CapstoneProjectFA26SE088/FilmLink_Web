@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { type Account, orders as sampleOrders, type Section, type ServiceOrder, services } from "@/components/shared/model";
 import { OrderRow } from "../orders/orders-section";
 import { ServiceCard } from "@/components/shared/services/service-card";
+import { ExpertDashboardSummary } from "@/components/expert/dashboard/expert-dashboard-summary";
 
 export function UserHomeSection({
 	account,
@@ -78,6 +79,7 @@ export function UserHomeSection({
 					</span>
 				</article>
 			</section>
+			{(account?.role === "PHOTOGRAPHY_EXPERT" || account?.role === "EXPERT") && <ExpertDashboardSummary onOpen={() => onSelect("expert")} />}
 
 			<section
 				className="dashboard-order-panel"

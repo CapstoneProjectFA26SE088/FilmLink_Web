@@ -29,7 +29,7 @@ export function WorkspaceShell<T extends string = Section>({
 }: {
 	account: Account | null;
 	active: T;
-	mode: "guest" | "user" | "lab-owner" | "admin";
+	mode: "guest" | "user" | "expert" | "lab-owner" | "admin";
 	orderCount?: number;
 	homeHref?: string;
 	accountRoleLabel?: string;
@@ -66,16 +66,16 @@ export function WorkspaceShell<T extends string = Section>({
 				<WorkspaceSidebar
 					active={active}
 					account={account}
-					homeHref={homeHref ?? (mode === "user" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
+					homeHref={homeHref ?? (mode === "user" || mode === "expert" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
 					orderCount={orderCount}
-					showOrderCount={mode === "user"}
+					showOrderCount={mode === "user" || mode === "expert"}
 					navigationItems={navigationItems}
 					accountRoleLabel={accountRoleLabel}
 					accountInitials={accountInitials}
 					onLogout={mode !== "guest" ? handleLogout : undefined}
 					logoutPending={logoutPending}
 					logoutError={logoutError}
-					marketplaceEnabled={mode === "user"}
+					marketplaceEnabled={mode === "user" || mode === "expert"}
 					onNavigate={(section) => onNavigate(section as T)}
 					onDismissCommunityNote={() => setCommunityNoteVisible(false)}
 					communityNoteVisible={communityNote && communityNoteVisible}
@@ -101,16 +101,16 @@ export function WorkspaceShell<T extends string = Section>({
 						<WorkspaceSidebar
 							active={active}
 							account={account}
-						homeHref={homeHref ?? (mode === "user" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
+							homeHref={homeHref ?? (mode === "user" || mode === "expert" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
 							orderCount={orderCount}
-							showOrderCount={mode === "user"}
+							showOrderCount={mode === "user" || mode === "expert"}
 							navigationItems={navigationItems}
 							accountRoleLabel={accountRoleLabel}
 							accountInitials={accountInitials}
 							onLogout={mode !== "guest" ? handleLogout : undefined}
 							logoutPending={logoutPending}
 							logoutError={logoutError}
-							marketplaceEnabled={mode === "user"}
+							marketplaceEnabled={mode === "user" || mode === "expert"}
 							onNavigate={(section) => onNavigate(section as T)}
 							onDismissCommunityNote={() => setCommunityNoteVisible(false)}
 							communityNoteVisible={communityNote && communityNoteVisible}

@@ -8,6 +8,8 @@ export type AdminRecord = {
 	date?: string;
 	amount?: number;
 	channel?: string;
+	details?: { label: string; value: string }[];
+	requiresRejectionReason?: boolean;
 };
 
 export type AdminDecision = { label: string; status: string; variant?: "default" | "outline" | "destructive" };
@@ -18,7 +20,7 @@ export const adminLabs: AdminRecord[] = [
 ];
 
 export const adminExperts: AdminRecord[] = [
-	{ id: "EX-01", title: "Nguyễn Hoàng Nam", summary: "Chuyên gia tráng C-41 · 5 năm kinh nghiệm", status: "Chờ duyệt", email: "nam@example.test", date: "01/11/2026" },
+	{ id: "EX-01", title: "Nguyễn Hoàng Nam", summary: "Hồ sơ nâng cấp từ Photographer lên Photography Expert.", status: "Chờ duyệt", email: "nam@example.test", date: "01/11/2026", requiresRejectionReason: true, details: [{ label: "Kinh nghiệm", value: "5 năm tráng và scan phim màu; từng hướng dẫn quy trình C-41 cho cộng đồng. Có kinh nghiệm đánh giá chất lượng scan và bảo quản film." }, { label: "Portfolio", value: "https://example.test/portfolio/nguyen-hoang-nam" }, { label: "Tài khoản hiện tại", value: "Photographer · vai trò chỉ được nâng sau khi Admin duyệt" }] },
 ];
 
 export const adminComplaints: AdminRecord[] = [

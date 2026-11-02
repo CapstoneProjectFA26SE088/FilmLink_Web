@@ -68,6 +68,7 @@ export function UserSection({ section }: { section: Section }) {
 				<CommunitySection
 					likedPosts={likedPosts}
 					accountName={account?.fullName || account?.email}
+					isExpert={account?.role === "PHOTOGRAPHY_EXPERT" || account?.role === "EXPERT"}
 					onExploreLabs={() => navigateTo("services")}
 					onOpenAssistant={() => navigateTo("assistant")}
 					onLike={toggleLike}

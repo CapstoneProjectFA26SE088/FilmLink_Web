@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatVnd, type AdminDecision, type AdminRecord } from "../data/fixtures";
 import styles from "../admin-pages.module.css";
+import { readExpertApplication, saveExpertApplication } from "@/components/shared/expert-demo/demo-session";
 
 export function AdminQueuePage({ title, description, initialRecords, decisions }: {
 	title: string;
@@ -15,6 +16,17 @@ export function AdminQueuePage({ title, description, initialRecords, decisions }
 	const [query, setQuery] = useState("");
 	const [status, setStatus] = useState("Tất cả");
 	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const [rejectionReason, setRejectionReason] = useState("");
+	const [decisionError, setDecisionError] = useState("");
+	useEffect(() => {
+		if (title !== "Duyệt hồ sơ chuyên gia") return;
+		const application = readExpertApplication();
+		if (!application) return;
+		setRecords((current) => {
+			const record = { id: application.id, title: application.name, summary: "Hồ sơ nâng cấp từ Photographer lên Photography Expert.", status: application.status, email: application.email, date: "Phiên hiện tại", requiresRejectionReason: true, details: [{ label: "Kinh nghiệm", value: application.experience }, ...(application.portfolio ? [{ label: "Portfolio", value: application.portfolio }] : []), { label: "Tài khoản hiện tại", value: "Photographer · vai trò chưa được thay đổi bởi bản demo" }] };
+			return [record, ...current.filter((item) => item.id !== record.id && item.id !== "EX-01")];
+		});
+	}, [title]);
 	const selected = records.find((record) => record.id === selectedId) ?? null;
 	const statuses = useMemo(() => ["Tất cả", ...new Set(records.map((record) => record.status))], [records]);
 	const filtered = useMemo(() => records.filter((record) => {
@@ -24,8 +36,18 @@ export function AdminQueuePage({ title, description, initialRecords, decisions }
 
 	function applyDecision(decision: AdminDecision) {
 		if (!selected) return;
+		if (decision.status.includes("Từ chối") && selected.requiresRejectionReason && !rejectionReason.trim()) {
+			setDecisionError("Cần ghi lý do từ chối hồ sơ.");
+			return;
+		}
 		setRecords((current) => current.map((record) => record.id === selected.id ? { ...record, status: decision.status } : record));
+		if (title === "Duyệt hồ sơ chuyên gia" && selected.id.startsWith("EX-") && selected.email) {
+			const current = readExpertApplication();
+			if (current?.id === selected.id) saveExpertApplication({ ...current, status: decision.status.includes("Từ chối") ? "Từ chối" : "Đã xác minh", rejectionReason: decision.status.includes("Từ chối") ? rejectionReason.trim() : undefined });
+		}
 		setSelectedId(null);
+		setRejectionReason("");
+		setDecisionError("");
 	}
 
 	return (
@@ -45,7 +67,7 @@ export function AdminQueuePage({ title, description, initialRecords, decisions }
 						<thead><tr><th>Mã</th><th>Nội dung</th><th>Thông tin thêm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
 						<tbody>
 							{filtered.map((record) => <tr key={record.id}>
-								<td>{record.id}</td><td>{record.title}<small>{record.summary}</small></td>
+				<td>{record.id}</td><td>{record.title}<small>{record.summary}</small></td>
 								<td>{record.owner ?? record.channel ?? "—"}<small>{record.date ?? record.email ?? ""}</small></td>
 								<td><span className={`${styles.badge} ${record.status.includes("Chờ") ? styles.badgeWarning : record.status.includes("Đã") || record.status === "Thành công" ? styles.badgeSuccess : ""}`}>{record.status}</span></td>
 								<td><Button size="sm" variant="outline" onClick={() => setSelectedId(record.id)}>Chi tiết</Button></td>
@@ -65,8 +87,10 @@ export function AdminQueuePage({ title, description, initialRecords, decisions }
 						{selected.date && <div className={styles.detailLine}><span>Ngày nhận</span><strong>{selected.date}</strong></div>}
 						{selected.amount !== undefined && <div className={styles.detailLine}><span>Số tiền</span><strong>{formatVnd(selected.amount)}</strong></div>}
 						{selected.channel && <div className={styles.detailLine}><span>Hình thức</span><strong>{selected.channel}</strong></div>}
+						{selected.details?.map((detail) => <div className={styles.detailLine} key={detail.label}><span>{detail.label}</span><strong>{detail.value.startsWith("https://") ? <a href={detail.value} target="_blank" rel="noreferrer">Mở portfolio</a> : detail.value}</strong></div>)}
 					</div>
-					<div className={styles.formActions}><Button variant="outline" onClick={() => setSelectedId(null)}>Đóng</Button>{decisions.map((decision) => <Button key={decision.status} variant={decision.variant ?? "default"} onClick={() => applyDecision(decision)}>{decision.label}</Button>)}</div>
+					{selected.requiresRejectionReason && <label className={styles.field}>Lý do từ chối (bắt buộc nếu từ chối)<textarea className={styles.field} value={rejectionReason} onChange={(event) => { setRejectionReason(event.target.value); setDecisionError(""); }} placeholder="Nêu nội dung cần bổ sung hoặc chưa đạt…" />{decisionError && <small className={styles.errorMessage}>{decisionError}</small>}</label>}
+					<div className={styles.formActions}><Button variant="outline" onClick={() => { setSelectedId(null); setDecisionError(""); }}>Đóng</Button>{decisions.map((decision) => <Button key={decision.status} variant={decision.variant ?? "default"} onClick={() => applyDecision(decision)}>{selected.requiresRejectionReason && decision.status.includes("Đã") ? "Duyệt & nâng cấp Expert (demo)" : decision.label}</Button>)}</div>
 				</section>
 			</div>}
 		</div>

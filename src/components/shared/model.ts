@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 export type Section =
+	| "expert"
 	| "home"
 	| "services"
 	| "orders"
@@ -42,6 +43,17 @@ export type ServiceOrder = {
 
 export const navigation: { id: Section; label: string; icon: typeof Home }[] = [
 	{ id: "home", label: "Trang chủ", icon: Home },
+	{ id: "services", label: "Đặt dịch vụ", icon: Camera },
+	{ id: "orders", label: "Đơn hàng", icon: PackageCheck },
+	{ id: "marketplace", label: "Chợ ký gửi", icon: ShoppingBag },
+	{ id: "community", label: "Cộng đồng", icon: UsersRound },
+	{ id: "assistant", label: "Trợ lý AI", icon: Sparkles },
+	{ id: "account", label: "Tài khoản", icon: UserRound },
+];
+
+export const expertNavigation: { id: Section; label: string; icon: typeof Home }[] = [
+	{ id: "home", label: "Trang chủ", icon: Home },
+	{ id: "expert", label: "Không gian chuyên gia", icon: Sparkles },
 	{ id: "services", label: "Đặt dịch vụ", icon: Camera },
 	{ id: "orders", label: "Đơn hàng", icon: PackageCheck },
 	{ id: "marketplace", label: "Chợ ký gửi", icon: ShoppingBag },

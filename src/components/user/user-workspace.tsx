@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { WorkspaceShell } from "@/components/shared/layout/workspace-shell";
-import { orders as initialOrders, type Account, type Section, type ServiceOrder } from "@/components/shared/model";
+import { expertNavigation, navigation, orders as initialOrders, type Account, type Section, type ServiceOrder } from "@/components/shared/model";
 
 type UserWorkspaceValue = {
 	account: Account | null;
@@ -25,6 +25,7 @@ type UserWorkspaceValue = {
 const UserWorkspaceContext = createContext<UserWorkspaceValue | null>(null);
 
 export const userRouteBySection: Record<Section, string> = {
+	expert: "/expert",
 	home: "/dashboard",
 	services: "/services",
 	orders: "/orders",
@@ -36,6 +37,10 @@ export const userRouteBySection: Record<Section, string> = {
 
 const sectionForRoute: Record<string, Section> = {
 	dashboard: "home",
+	expert: "expert",
+	"expert-application": "account",
+	"expert-articles": "expert",
+	"expert-events": "expert",
 	services: "services",
 	orders: "orders",
 	marketplace: "marketplace",
@@ -44,7 +49,7 @@ const sectionForRoute: Record<string, Section> = {
 	profile: "account",
 };
 
-export function UserWorkspace({ children }: { children: ReactNode }) {
+export function UserWorkspace({ children, mode = "user" }: { children: ReactNode; mode?: "user" | "expert" }) {
 	const pathname = usePathname();
 	const router = useRouter();
 	const [account, setAccount] = useState<Account | null>(null);
@@ -56,6 +61,8 @@ export function UserWorkspace({ children }: { children: ReactNode }) {
 	const [bookingLabId, setBookingLabId] = useState<string | null>(null);
 	const [bookingPackageId, setBookingPackageId] = useState<string | null>(null);
 	const active = sectionForRoute[pathname.split("/")[1] ?? ""] ?? "home";
+	const expertAccount = account?.role === "PHOTOGRAPHY_EXPERT" || account?.role === "EXPERT";
+	const shellMode = mode === "expert" || expertAccount ? "expert" : "user";
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -74,12 +81,18 @@ export function UserWorkspace({ children }: { children: ReactNode }) {
 		return () => controller.abort();
 	}, [router]);
 
+	useEffect(() => {
+		if (!accountLoaded || !account) return;
+		const expert = account.role === "PHOTOGRAPHY_EXPERT" || account.role === "EXPERT";
+		if (mode === "expert" && !expert) router.replace("/dashboard");
+	}, [account, accountLoaded, mode, router]);
+
 	function navigateTo(section: Section) {
 		if (section !== "services") {
 			setBookingLabId(null);
 			setBookingPackageId(null);
 		}
-		router.push(userRouteBySection[section]);
+		router.push(section === "expert" ? "/expert" : userRouteBySection[section]);
 	}
 
 	function addOrder(order: ServiceOrder) {
@@ -144,7 +157,9 @@ export function UserWorkspace({ children }: { children: ReactNode }) {
 			<WorkspaceShell
 				account={account}
 				active={active}
-				mode="user"
+				mode={shellMode}
+				homeHref="/dashboard"
+				navigationItems={shellMode === "expert" ? expertNavigation : navigation}
 				orderCount={orders.length}
 				onLogout={logout}
 				onNavigate={navigateTo}
