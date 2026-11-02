@@ -27,9 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Script id="filmlink-theme-init" strategy="beforeInteractive">
-          {`try { if (localStorage.getItem("filmlink-theme") === "dark") document.documentElement.classList.add("dark"); } catch {}`}
-        </Script>
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
         <ThemeToggle />
         {children}
       </body>

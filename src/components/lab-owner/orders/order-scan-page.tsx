@@ -17,7 +17,7 @@ export function OrderScanPage({ orderId }: { orderId: string }) {
 
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (!order.paid) return;
+		if (!order?.paid) return;
 		setSaved(true);
 	}
 
