@@ -62,8 +62,12 @@ export function LoginForm({
       const destination =
         account?.role === "ADMIN"
           ? "/admin"
+          : account?.role === "MODERATOR"
+            ? "/moderation"
           : account?.role === "FILM_LAB_OWNER"
             ? "/lab-owner"
+            : account?.role === "PHOTOGRAPHY_EXPERT" || account?.role === "EXPERT"
+              ? "/dashboard"
             : "/dashboard"
       router.replace(destination)
       router.refresh()
