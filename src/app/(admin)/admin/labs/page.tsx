@@ -1,6 +1,6 @@
-import { AdminQueueScreen } from "@/components/admin/admin-pages";
+import { AdminLabApplicationsPage } from "@/components/admin/admin-api-workflows";
 
 export default function Page() {
-	return <AdminQueueScreen section="labs" />;
+	return <AdminLabApplicationsPage />;
 }
 

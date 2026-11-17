@@ -1,6 +1,6 @@
-import { AdminSettingsPage } from "@/components/admin/admin-pages";
+import { AdminSystemParametersPage } from "@/components/admin/admin-api-workflows";
 
 export default function Page() {
-	return <AdminSettingsPage />;
+	return <AdminSystemParametersPage />;
 }
 
