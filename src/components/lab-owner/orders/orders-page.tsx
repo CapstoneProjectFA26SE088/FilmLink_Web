@@ -1,88 +1,112 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { demoOrders, formatVnd, type ServiceOrder } from "../data/fixtures";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { formatDate, formatMoney, labOwnerApi, STATUS_LABELS, type OrderStatus, type OrderSummary, type PageResponse } from "@/lib/lab-owner-api";
 import styles from "../lab-owner-pages.module.css";
 
-const statusOptions = ["Tất cả", "Chờ tiếp nhận", "Đang xử lý", "Chờ bàn giao", "Hoàn tất", "Đã hủy"];
-
-function getBadgeClass(status: ServiceOrder["status"]) {
-	if (status === "Hoàn tất") return styles.badgeSuccess;
-	if (status === "Chờ tiếp nhận") return styles.badgeWarning;
-	if (status === "Đã hủy") return styles.badgeDanger;
-	return styles.badge;
-}
-
 export function OrdersPage() {
-	const router = useRouter();
+	const [data, setData] = useState<PageResponse<OrderSummary> | null>(null);
 	const [query, setQuery] = useState("");
-	const [status, setStatus] = useState("Tất cả");
-	const filtered = useMemo(() => demoOrders.filter((order) => {
-		const matchesQuery = `${order.id} ${order.customer} ${order.film}`
-			.toLocaleLowerCase("vi")
-			.includes(query.trim().toLocaleLowerCase("vi"));
-		return matchesQuery && (status === "Tất cả" || order.status === status);
-	}), [query, status]);
-	const activeCount = demoOrders.filter((order) => !["Hoàn tất", "Đã hủy"].includes(order.status)).length;
+	const [status, setStatus] = useState<"" | OrderStatus>("");
+	const [page, setPage] = useState(0);
+	const [reload, setReload] = useState(0);
+	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		const controller = new AbortController();
+		const params = new URLSearchParams({ page: String(page), size: "20" });
+		if (status) params.set("status", status);
+		void labOwnerApi<PageResponse<OrderSummary>>(`lab/orders?${params}`, { signal: controller.signal })
+			.then((result) => {
+				if (!controller.signal.aborted) setData(result);
+			})
+			.catch((cause: unknown) => {
+				if (controller.signal.aborted) return;
+				setData(null);
+				setError(cause instanceof Error ? cause.message : "Không tải được đơn.");
+			})
+			.finally(() => {
+				if (!controller.signal.aborted) setLoading(false);
+			});
+		return () => controller.abort();
+	}, [page, status, reload]);
+
+	const search = query.trim().toLowerCase();
+	const orders = (data?.content ?? []).filter((order) =>
+		`${order.orderCode} ${order.id}`.toLowerCase().includes(search)
+	);
+
+	function goToPage(nextPage: number) {
+		setError("");
+		setLoading(true);
+		setPage(nextPage);
+	}
 
 	return (
 		<div className={styles.page}>
 			<header className={styles.heading}>
-				<div>
-					<p className={styles.eyebrow}>Vận hành Film Lab</p>
-					<h1>Hàng đợi đơn</h1>
-					<p>Theo dõi phim cần nhận, đang tráng và chờ bàn giao.</p>
-				</div>
+				<div><p className={styles.eyebrow}>Vận hành Film Lab</p><h1>Hàng đợi đơn</h1><p>Theo dõi các đơn dịch vụ của lab.</p></div>
 			</header>
-			<p className={styles.demoNote}>
-				Dữ liệu đơn hiện là mẫu từ prototype. Thay đổi trạng thái chỉ lưu trong phiên trình duyệt.
-			</p>
-
-			<section className={styles.stats} aria-label="Tóm tắt hàng đợi">
-				<div className={styles.stat}><span>Tổng đơn mẫu</span><strong>{demoOrders.length}</strong></div>
-				<div className={styles.stat}><span>Đang xử lý</span><strong>{activeCount}</strong></div>
-				<div className={styles.stat}><span>Chờ tiếp nhận</span><strong>{demoOrders.filter((order) => order.status === "Chờ tiếp nhận").length}</strong></div>
-				<div className={styles.stat}><span>Chờ bàn giao</span><strong>{demoOrders.filter((order) => order.status === "Chờ bàn giao").length}</strong></div>
+			<section className={styles.stats}>
+				<div className={styles.stat}><span>Tổng kết quả</span><strong>{!loading ? data?.totalElements ?? "—" : "—"}</strong></div>
+				<div className={styles.stat}><span>Trang hiện tại</span><strong>{page + 1}</strong></div>
+				<div className={styles.stat}><span>Số trang</span><strong>{!loading ? data?.totalPages ?? "—" : "—"}</strong></div>
 			</section>
-
-			<section className={styles.panel} aria-labelledby="orders-title">
+			<section className={styles.panel} aria-busy={loading}>
 				<div className={styles.panelHeader}>
-					<div><h2 id="orders-title">Đơn dịch vụ tại lab</h2><p>{filtered.length} đơn phù hợp</p></div>
+					<div><h2>Đơn dịch vụ tại lab</h2><p>{loading ? "Đang tải đơn…" : `${orders.length} đơn trên trang`}</p></div>
 				</div>
 				<div className={styles.tools}>
-					<input
-						className={styles.search}
-						aria-label="Tìm đơn"
-						placeholder="Tìm mã đơn, khách hoặc loại phim"
-						value={query}
-						onChange={(event) => setQuery(event.target.value)}
-					/>
-					<select className={styles.select} aria-label="Lọc trạng thái" value={status} onChange={(event) => setStatus(event.target.value)}>
-						{statusOptions.map((item) => <option key={item}>{item}</option>)}
+					<input className={styles.search} aria-label="Tìm đơn" placeholder="Tìm mã hoặc ID trong trang" value={query} onChange={(event) => setQuery(event.target.value)} />
+					<select className={styles.select} aria-label="Trạng thái đơn" value={status} onChange={(event) => {
+						setStatus(event.target.value as "" | OrderStatus);
+						goToPage(0);
+					}}>
+						<option value="">Tất cả</option>
+						{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
 					</select>
 				</div>
-				<div className={styles.tableWrap}>
-					<table className={styles.table}>
-						<thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Film / quy trình</th><th>Cuộn</th><th>Trạng thái</th><th>Tổng tiền</th><th>Ngày trả</th><th /></tr></thead>
-						<tbody>
-							{filtered.map((order) => (
-								<tr key={order.id}>
-									<td>{order.id}</td>
-									<td>{order.customer}<small>{order.email}</small></td>
-									<td>{order.film}<small>{order.process} · {order.format}</small></td>
-									<td>{order.rolls}</td>
-									<td><span className={`${styles.badge} ${getBadgeClass(order.status)}`}>{order.status}</span></td>
-									<td>{formatVnd(order.total)}</td>
-									<td>{order.dueDate}</td>
-									<td><Button size="sm" variant="outline" onClick={() => router.push(`/lab-owner/orders/${order.id}`)}>Chi tiết</Button></td>
-								</tr>
-							))}
-							{filtered.length === 0 && <tr><td colSpan={8} className={styles.empty}>Không có đơn phù hợp.</td></tr>}
-						</tbody>
-					</table>
-				</div>
+				{error && (
+					<div className={styles.detailBody}>
+						<p role="alert">{error}</p>
+						<Button variant="outline" onClick={() => {
+							setError("");
+							setLoading(true);
+							setReload((value) => value + 1);
+						}}>Thử lại</Button>
+					</div>
+				)}
+				{!loading && !error && (
+					<div className={styles.tableWrap}>
+						<table className={styles.table}>
+							<thead><tr><th>Mã đơn</th><th>Hạng dịch vụ</th><th>Cuộn</th><th>Trạng thái</th><th>Tạm tính</th><th>Ngày dự kiến</th><th><span className="sr-only">Thao tác</span></th></tr></thead>
+							<tbody>
+								{orders.map((order) => {
+									const badge = order.status === "CANCELLED" ? styles.badgeDanger : order.status === "DELIVERED" || order.status === "CLOSED" ? styles.badgeSuccess : styles.badgeWarning;
+									return (
+										<tr key={order.id}>
+											<td>{order.orderCode}<small>ID {order.id}</small></td>
+											<td>{order.serviceTier}</td>
+											<td>{order.rollCount}</td>
+											<td><span className={`${styles.badge} ${badge}`}>{STATUS_LABELS[order.status] ?? order.status}</span></td>
+											<td>{formatMoney(order.estimatedTotalVnd)}</td>
+											<td>{formatDate(order.expectedReturnAt)}</td>
+											<td><Link className={buttonVariants({ size: "sm", variant: "outline" })} href={`/lab-owner/orders/${order.id}`}>Chi tiết</Link></td>
+										</tr>
+									);
+								})}
+								{orders.length === 0 && <tr><td colSpan={7} className={styles.empty}>Không có đơn phù hợp.</td></tr>}
+							</tbody>
+						</table>
+					</div>
+				)}
+				<nav className={styles.tools} aria-label="Phân trang đơn">
+					<Button variant="outline" disabled={loading || page === 0} onClick={() => goToPage(page - 1)}>Trước</Button>
+					<Button variant="outline" disabled={loading || !data?.hasNext} onClick={() => goToPage(page + 1)}>Sau</Button>
+				</nav>
 			</section>
 		</div>
 	);
