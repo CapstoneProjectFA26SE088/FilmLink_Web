@@ -1,5 +1,5 @@
-import { UserSection } from "@/components/user/user-section";
+import { PhotographerOrders } from "@/components/user/orders/photographer-orders";
 
 export default function OrdersPage() {
-	return <UserSection section="orders" />;
+	return <PhotographerOrders />;
 }
