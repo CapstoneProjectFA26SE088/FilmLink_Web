@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, Building2, CircleDollarSign, ClipboardCheck, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminQueuePage } from "./components/admin-queue-page";
@@ -26,9 +26,9 @@ const queueConfig: Record<string, { title: string; description: string; records:
 	payments: { title: "Thanh toán & payout", description: "Theo dõi giao dịch, phí nền tảng và các khoản cần đối soát.", records: adminPayments },
 };
 
-export function AdminQueueScreen({ section }: { section: keyof typeof queueConfig }) {
+export function AdminQueueScreen({ section, beforeQueue }: { section: keyof typeof queueConfig; beforeQueue?: ReactNode }) {
 	const config = queueConfig[section];
-	return <AdminQueuePage title={config.title} description={config.description} initialRecords={config.records} decisions={decisions[section]} />;
+	return <AdminQueuePage title={config.title} description={config.description} initialRecords={config.records} decisions={decisions[section]} beforeQueue={beforeQueue} />;
 }
 
 export function AdminDashboardPage() {
