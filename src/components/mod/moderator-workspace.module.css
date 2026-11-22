@@ -59,5 +59,11 @@
 .activityCard { display: grid; gap: .45rem; padding: .85rem; border: 1px solid var(--border); border-radius: .7rem; }
 .activityCard h3 { margin: 0; font-size: .82rem; }
 .activityCard p { margin: 0; color: var(--text-secondary); font-size: .72rem; line-height: 1.5; }
+.accountContent { display: grid; width: 100%; max-width: 42rem; gap: 1rem; }
+.accountContent :global(.account-password-form) { width: 100%; max-width: none; box-sizing: border-box; margin-top: 0; }
+.accountDetails { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin: 0; padding: 1rem; }
+.accountDetails div { display: grid; gap: .3rem; min-width: 0; }
+.accountDetails dt { color: var(--text-muted); font-size: .7rem; }
+.accountDetails dd { overflow-wrap: anywhere; margin: 0; font-size: .8rem; font-weight: 570; }
 @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .page { gap: .8rem; padding: .75rem 0 1.25rem; } .metrics { grid-template-columns: 1fr; } .metric { grid-template-columns: 1fr auto; align-items: center; } .metric small { grid-column: 1 / -1; } .heading { align-items: flex-start; flex-direction: column; } .toolbar { align-items: stretch; } .toolbarGroup { width: 100%; } .search,.select { flex: 1; } .detailGrid,.formRow,.activityGrid { grid-template-columns: 1fr; } .formActions>* { flex: 1; } }
+@media (max-width: 600px) { .page { gap: .8rem; padding: .75rem 0 1.25rem; } .metrics { grid-template-columns: 1fr; } .metric { grid-template-columns: 1fr auto; align-items: center; } .metric small { grid-column: 1 / -1; } .heading { align-items: flex-start; flex-direction: column; } .toolbar { align-items: stretch; } .toolbarGroup { width: 100%; } .search,.select { flex: 1; } .detailGrid,.formRow,.activityGrid,.accountDetails { grid-template-columns: 1fr; } .formActions>* { flex: 1; } }
