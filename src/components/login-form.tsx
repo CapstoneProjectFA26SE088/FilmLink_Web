@@ -104,13 +104,12 @@ export function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <span
-                    aria-disabled="true"
-                    title="Password recovery is not available yet"
-                    className="ml-auto inline-block cursor-not-allowed text-sm text-muted-foreground underline-offset-4"
+                  <Link
+                    href="/forgot-password"
+                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
-                  </span>
+                  </Link>
                 </div>
                 <Input
                   id="password"
