@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { WorkspaceShell } from "@/components/shared/layout/workspace-shell";
-import { expertNavigation, navigation, orders as initialOrders, type Account, type Section, type ServiceOrder } from "@/components/shared/model";
+import { photographerExpertNavigation, photographerNavigation, type Account, type Section, type ServiceOrder } from "@/components/shared/model";
 
 type UserWorkspaceValue = {
 	account: Account | null;
@@ -29,6 +29,7 @@ export const userRouteBySection: Record<Section, string> = {
 	home: "/dashboard",
 	services: "/services",
 	orders: "/orders",
+	archive: "/archive",
 	marketplace: "/marketplace",
 	community: "/community",
 	assistant: "/ai-support",
@@ -43,6 +44,7 @@ const sectionForRoute: Record<string, Section> = {
 	"expert-events": "expert",
 	services: "services",
 	orders: "orders",
+	archive: "archive",
 	marketplace: "marketplace",
 	community: "community",
 	"ai-support": "assistant",
@@ -54,7 +56,7 @@ export function UserWorkspace({ children, mode = "user" }: { children: ReactNode
 	const router = useRouter();
 	const [account, setAccount] = useState<Account | null>(null);
 	const [accountLoaded, setAccountLoaded] = useState(false);
-	const [orders, setOrders] = useState<ServiceOrder[]>(initialOrders);
+	const [orders, setOrders] = useState<ServiceOrder[]>([]);
 	const [likedPosts, setLikedPosts] = useState<string[]>([]);
 	const [prompt, setPrompt] = useState("");
 	const [chat, setChat] = useState<{ id: string; from: "user" | "ai"; text: string }[]>([]);
@@ -159,8 +161,7 @@ export function UserWorkspace({ children, mode = "user" }: { children: ReactNode
 				active={active}
 				mode={shellMode}
 				homeHref="/dashboard"
-				navigationItems={shellMode === "expert" ? expertNavigation : navigation}
-				orderCount={orders.length}
+				navigationItems={shellMode === "expert" ? photographerExpertNavigation : photographerNavigation}
 				onLogout={logout}
 				onNavigate={navigateTo}
 			>

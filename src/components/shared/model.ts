@@ -3,6 +3,7 @@ import {
 	CircleDot,
 	Film,
 	Home,
+	Images,
 	PackageCheck,
 	ShoppingBag,
 	Sparkles,
@@ -15,6 +16,7 @@ export type Section =
 	| "home"
 	| "services"
 	| "orders"
+	| "archive"
 	| "marketplace"
 	| "community"
 	| "assistant"
@@ -45,6 +47,17 @@ export const navigation: { id: Section; label: string; icon: typeof Home }[] = [
 	{ id: "home", label: "Trang chủ", icon: Home },
 	{ id: "services", label: "Đặt dịch vụ", icon: Camera },
 	{ id: "orders", label: "Đơn hàng", icon: PackageCheck },
+	{ id: "marketplace", label: "Chợ ký gửi", icon: ShoppingBag },
+	{ id: "community", label: "Cộng đồng", icon: UsersRound },
+	{ id: "assistant", label: "Trợ lý AI", icon: Sparkles },
+	{ id: "account", label: "Tài khoản", icon: UserRound },
+];
+
+export const photographerNavigation: { id: Section; label: string; icon: typeof Home }[] = [
+	{ id: "home", label: "Trang chủ", icon: Home },
+	{ id: "services", label: "Đặt dịch vụ", icon: Camera },
+	{ id: "orders", label: "Đơn hàng", icon: PackageCheck },
+	{ id: "archive", label: "Kho ảnh số", icon: Images },
 	{ id: "marketplace", label: "Chợ ký gửi", icon: ShoppingBag },
 	{ id: "community", label: "Cộng đồng", icon: UsersRound },
 	{ id: "assistant", label: "Trợ lý AI", icon: Sparkles },
@@ -90,6 +103,12 @@ export const services = [
 		tone: "dark",
 		icon: CircleDot,
 	},
+];
+
+export const photographerExpertNavigation = [
+	...expertNavigation.slice(0, 4),
+	{ id: "archive" as const, label: "Kho ảnh số", icon: Images },
+	...expertNavigation.slice(4),
 ];
 
 export const orders = [
