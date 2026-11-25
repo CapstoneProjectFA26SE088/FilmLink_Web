@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { formatVnd, type AdminDecision, type AdminRecord } from "../data/fixtures";
 import styles from "../admin-pages.module.css";
 import { readExpertApplication, saveExpertApplication } from "@/components/shared/expert-demo/demo-session";
 
-export function AdminQueuePage({ title, description, initialRecords, decisions }: {
+export function AdminQueuePage({ title, description, initialRecords, decisions, beforeQueue }: {
 	title: string;
 	description: string;
 	initialRecords: AdminRecord[];
 	decisions: AdminDecision[];
+	beforeQueue?: ReactNode;
 }) {
 	const [records, setRecords] = useState(initialRecords);
 	const [query, setQuery] = useState("");
@@ -55,6 +56,7 @@ export function AdminQueuePage({ title, description, initialRecords, decisions }
 			<header className={styles.heading}>
 				<div><p className={styles.eyebrow}>Vận hành FilmLink</p><h1>{title}</h1><p>{description}</p></div>
 			</header>
+			{beforeQueue}
 			<p className={styles.demoNote}>Danh sách và quyết định dưới đây đang dùng dữ liệu prototype; thay đổi chỉ lưu trong phiên trình duyệt.</p>
 			<section className={styles.panel} aria-labelledby="queue-title">
 				<div className={styles.panelHeader}><div><h2 id="queue-title">Danh sách và quyết định xử lý</h2><p>{filtered.length} kết quả</p></div></div>
