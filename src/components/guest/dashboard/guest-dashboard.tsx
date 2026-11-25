@@ -1,34 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { AssistantSection } from "@/components/shared/ai-support/assistant-section";
 import { CommunitySection } from "@/components/shared/community/community-section";
 import { HomeSection } from "./home-section";
 import { LoginRequiredSection } from "../auth/login-required-section";
 import type { Section } from "@/components/shared/model";
-import { services } from "@/components/shared/model";
 import { ServicesSection } from "../services/services-section";
 import { WorkspaceShell } from "@/components/shared/layout/workspace-shell";
 
 export function GuestDashboard() {
 	const router = useRouter();
 	const [active, setActive] = useState<Section>("home");
-	const [search, setSearch] = useState("");
 	const [likedPosts, setLikedPosts] = useState<string[]>([]);
 	const [prompt, setPrompt] = useState("");
 	const [chat, setChat] = useState<
 		{ id: string; from: "user" | "ai"; text: string }[]
 	>([]);
-	const visibleServices = useMemo(
-		() =>
-			services.filter((service) =>
-				`${service.name} ${service.description} ${service.place}`
-					.toLowerCase()
-					.includes(search.toLowerCase()),
-			),
-		[search],
-	);
 
 	function sendPrompt(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -64,9 +53,6 @@ export function GuestDashboard() {
 			)}
 			{active === "services" && (
 				<ServicesSection
-					search={search}
-					onSearch={setSearch}
-					services={visibleServices}
 					onBook={() => router.push("/login")}
 					onSelect={setActive}
 				/>
