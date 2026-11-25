@@ -2,6 +2,7 @@ import {
 	ArrowRight,
 	ArrowUpRight,
 	Camera,
+	FlaskConical,
 	MapPin,
 	Sparkles,
 } from "lucide-react";
@@ -184,6 +185,11 @@ export function HomeSection({
 						</div>
 					</div>
 					<div className="guest-feature-list">
+						<Link href="/open-lab">
+							<FlaskConical aria-hidden="true" />
+							<span><strong>Mở Film Lab</strong><small>Đăng ký trở thành đối tác dịch vụ.</small></span>
+							<ArrowUpRight aria-hidden="true" />
+						</Link>
 						<button type="button" onClick={() => onSelect("services")}>
 							<Camera aria-hidden="true" />
 							<span>

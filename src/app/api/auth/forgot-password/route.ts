@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Email không hợp lệ." }, { status: 400 })
   }
   try {
-    const response =  await forwardJson("/api/v1/auth/forgot-password", { email: body.email })
+    const response = await forwardJson("/api/v1/auth/forgot-password", { email: body.email })
     if (!response.ok) return publicBackendError(response, await readJson(response))
     return new NextResponse(null, { status: 204, headers: { "cache-control": "no-store" } })
   } catch {

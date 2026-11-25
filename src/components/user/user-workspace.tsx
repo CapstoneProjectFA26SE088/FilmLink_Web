@@ -2,8 +2,10 @@
 
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { WorkspaceShell } from "@/components/shared/layout/workspace-shell";
-import { expertNavigation, navigation, orders as initialOrders, type Account, type Section, type ServiceOrder } from "@/components/shared/model";
+import { photographerExpertNavigation, photographerNavigation, type Account, type Section, type ServiceOrder } from "@/components/shared/model";
+import { getExpertAccessState, isExpertRole, nonExpertHome } from "@/lib/expert-access";
 
 type UserWorkspaceValue = {
 	account: Account | null;
@@ -29,6 +31,7 @@ export const userRouteBySection: Record<Section, string> = {
 	home: "/dashboard",
 	services: "/services",
 	orders: "/orders",
+	archive: "/archive",
 	marketplace: "/marketplace",
 	community: "/community",
 	assistant: "/ai-support",
@@ -43,6 +46,7 @@ const sectionForRoute: Record<string, Section> = {
 	"expert-events": "expert",
 	services: "services",
 	orders: "orders",
+	archive: "archive",
 	marketplace: "marketplace",
 	community: "community",
 	"ai-support": "assistant",
@@ -54,38 +58,58 @@ export function UserWorkspace({ children, mode = "user" }: { children: ReactNode
 	const router = useRouter();
 	const [account, setAccount] = useState<Account | null>(null);
 	const [accountLoaded, setAccountLoaded] = useState(false);
-	const [orders, setOrders] = useState<ServiceOrder[]>(initialOrders);
+	const [accountRequestError, setAccountRequestError] = useState<string | null>(null);
+	const [accountRequestKey, setAccountRequestKey] = useState(0);
+	const [orders, setOrders] = useState<ServiceOrder[]>([]);
 	const [likedPosts, setLikedPosts] = useState<string[]>([]);
 	const [prompt, setPrompt] = useState("");
 	const [chat, setChat] = useState<{ id: string; from: "user" | "ai"; text: string }[]>([]);
 	const [bookingLabId, setBookingLabId] = useState<string | null>(null);
 	const [bookingPackageId, setBookingPackageId] = useState<string | null>(null);
 	const active = sectionForRoute[pathname.split("/")[1] ?? ""] ?? "home";
-	const expertAccount = account?.role === "PHOTOGRAPHY_EXPERT" || account?.role === "EXPERT";
+	const expertAccount = isExpertRole(account?.role);
 	const shellMode = mode === "expert" || expertAccount ? "expert" : "user";
+	const expertAccessState = getExpertAccessState({
+		account,
+		loaded: accountLoaded,
+		requestError: accountRequestError,
+	});
 
 	useEffect(() => {
 		const controller = new AbortController();
+		if (mode === "expert") {
+			setAccountLoaded(false);
+			setAccountRequestError(null);
+		}
 		fetch("/api/auth/me", { cache: "no-store", signal: controller.signal })
 			.then(async (response) => {
+				if (controller.signal.aborted) return null;
 				if (response.status === 401) {
+					setAccount(null);
 					router.replace("/login");
 					return null;
 				}
 				if (!response.ok) throw new Error("Không tải được thông tin tài khoản.");
 				return (await response.json()) as Account;
 			})
-			.then((profile) => setAccount(profile))
-			.catch(() => {})
-			.finally(() => setAccountLoaded(true));
+			.then((profile) => {
+				if (!controller.signal.aborted) setAccount(profile);
+			})
+			.catch(() => {
+				if (mode === "expert" && !controller.signal.aborted) {
+					setAccountRequestError("Không thể xác minh tài khoản chuyên gia. Vui lòng thử lại.");
+				}
+			})
+			.finally(() => {
+				if (!controller.signal.aborted) setAccountLoaded(true);
+			});
 		return () => controller.abort();
-	}, [router]);
+	}, [accountRequestKey, mode, router]);
 
 	useEffect(() => {
 		if (!accountLoaded || !account) return;
-		const expert = account.role === "PHOTOGRAPHY_EXPERT" || account.role === "EXPERT";
-		if (mode === "expert" && !expert) router.replace("/dashboard");
-	}, [account, accountLoaded, mode, router]);
+		if (mode === "expert" && expertAccessState === "wrong-role") router.replace(nonExpertHome(account.role));
+	}, [account, accountLoaded, expertAccessState, mode, router]);
 
 	function navigateTo(section: Section) {
 		if (section !== "services") {
@@ -151,6 +175,33 @@ export function UserWorkspace({ children, mode = "user" }: { children: ReactNode
 		bookingPackageId,
 		setBookingPackageId,
 	};
+	const expertGate = mode === "expert" && expertAccessState !== "verified" ? (
+		<main className="flex min-h-screen items-center justify-center bg-background px-4">
+			<section
+				className="w-full max-w-md rounded-xl border bg-card p-6 text-center shadow-sm"
+				aria-busy={expertAccessState === "loading"}
+				aria-live="polite"
+			>
+				{expertAccessState === "loading" && (
+					<>
+						<h1 className="text-lg font-semibold">Đang xác minh tài khoản</h1>
+						<p className="mt-2 text-sm text-muted-foreground" role="status">Vui lòng chờ trong giây lát…</p>
+					</>
+				)}
+				{expertAccessState === "request-error" && (
+					<>
+						<h1 className="text-lg font-semibold">Chưa thể mở không gian chuyên gia</h1>
+						<p className="mt-2 text-sm text-destructive" role="alert">{accountRequestError}</p>
+						<Button className="mt-4" type="button" onClick={() => setAccountRequestKey((key) => key + 1)}>Thử lại</Button>
+					</>
+				)}
+				{expertAccessState === "logged-out" && <p className="text-sm text-muted-foreground" role="status">Đang chuyển đến trang đăng nhập…</p>}
+				{expertAccessState === "wrong-role" && <p className="text-sm text-muted-foreground" role="status">Đang chuyển về trang tài khoản của bạn…</p>}
+			</section>
+		</main>
+	) : null;
+
+	if (expertGate) return expertGate;
 
 	return (
 		<UserWorkspaceContext.Provider value={value}>
@@ -159,8 +210,7 @@ export function UserWorkspace({ children, mode = "user" }: { children: ReactNode
 				active={active}
 				mode={shellMode}
 				homeHref="/dashboard"
-				navigationItems={shellMode === "expert" ? expertNavigation : navigation}
-				orderCount={orders.length}
+				navigationItems={shellMode === "expert" ? photographerExpertNavigation : photographerNavigation}
 				onLogout={logout}
 				onNavigate={navigateTo}
 			>

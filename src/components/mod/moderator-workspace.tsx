@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpenCheck, ClipboardList, Gauge, UsersRound } from "lucide-react";
+import { BookOpenCheck, ClipboardList, Gauge, UserRound, UsersRound } from "lucide-react";
 import { WorkspaceShell } from "@/components/shared/layout/workspace-shell";
 import type { Account } from "@/components/shared/model";
 import styles from "./moderator-workspace.module.css";
@@ -12,12 +12,16 @@ const navigationItems = [
 	{ id: "reports", label: "Báo cáo nội dung", icon: ClipboardList },
 	{ id: "knowledge-base", label: "Knowledge Base", icon: BookOpenCheck },
 	{ id: "community", label: "Theo dõi cộng đồng", icon: UsersRound },
+	{ id: "account", label: "Tài khoản", icon: UserRound },
 ] as const;
+
+const ModeratorAccountContext = createContext<Account | null>(null);
 
 function activeSection(pathname: string) {
 	if (pathname.includes("/reports")) return "reports";
 	if (pathname.includes("/knowledge-base")) return "knowledge-base";
 	if (pathname.includes("/community")) return "community";
+	if (pathname.includes("/account")) return "account";
 	return "overview";
 }
 
@@ -73,18 +77,26 @@ export function ModeratorWorkspace({ children }: { children: ReactNode }) {
 	if (!account) return null;
 
 	return (
-		<WorkspaceShell
-			account={account}
-			active={activeSection(pathname)}
-			mode="admin"
-			homeHref="/moderation"
-			navigationItems={navigationItems}
-			accountRoleLabel="Kiểm duyệt viên"
-			communityNote={false}
-			onLogout={logout}
-			onNavigate={(section) => router.push(section === "overview" ? "/moderation" : `/moderation/${section}`)}
-		>
-			{children}
-		</WorkspaceShell>
+		<ModeratorAccountContext.Provider value={account}>
+			<WorkspaceShell
+				account={account}
+				active={activeSection(pathname)}
+				mode="admin"
+				homeHref="/moderation"
+				navigationItems={navigationItems}
+				accountRoleLabel="Kiểm duyệt viên"
+				communityNote={false}
+				onLogout={logout}
+				onNavigate={(section) => router.push(section === "overview" ? "/moderation" : `/moderation/${section}`)}
+			>
+				{children}
+			</WorkspaceShell>
+		</ModeratorAccountContext.Provider>
 	);
+}
+
+export function useModeratorAccount() {
+	const account = useContext(ModeratorAccountContext);
+	if (!account) throw new Error("useModeratorAccount must be used within ModeratorWorkspace.");
+	return account;
 }

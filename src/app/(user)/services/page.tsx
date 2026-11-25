@@ -1,5 +1,5 @@
-import { UserSection } from "@/components/user/user-section";
+import { PhotographerServices } from "@/components/user/services/photographer-services";
 
 export default function ServicesPage() {
-	return <UserSection section="services" />;
+	return <PhotographerServices />;
 }
