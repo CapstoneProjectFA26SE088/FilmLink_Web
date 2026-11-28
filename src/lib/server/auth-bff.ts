@@ -86,9 +86,7 @@ function decryptSession(value: string | undefined): SessionPayload | null {
 }
 
 export function apiUrl(path: string) {
-  const base =
-    process.env.FILMLINK_API_BASE_URL ||
-    (production ? "" : "http://localhost:8080")
+  const base = process.env.FILMLINK_API_BASE_URL
   if (!base) throw new Error("Cần cấu hình FILMLINK_API_BASE_URL ở server.")
   let url: URL
 
