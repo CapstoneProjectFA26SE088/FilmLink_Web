@@ -1,39 +1,188 @@
 "use client";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { formatDate, labOwnerApi, LabOwnerApiError, type CatalogOption, type Machine, type MachineHour, type MachineIncident } from "@/lib/lab-owner-api";
+import { InlineMessage, type InlineMessageTone } from "@/components/shared/feedback/inline-message";
+import { StatePanel } from "@/components/shared/feedback/state-panel";
+import { labOwnerApi, LabOwnerApiError, type CatalogOption, type Machine, type MachineIncident } from "@/lib/lab-owner-api";
 import { useLabOwnerWorkspace } from "../workspace";
+import { IncidentDialog, type IncidentDraft } from "./incident-dialog";
+import { IncidentResultsPanel } from "./incident-results-panel";
+import { blankForm, formFromMachine, validateHours, type MachineForm } from "./machine-form";
+import { MachineFormDialog } from "./machine-form-dialog";
+import { MachinesTable } from "./machines-table";
+import { SchedulingSettingsPanel, type SchedulingSettings } from "./scheduling-settings-panel";
 import styles from "../lab-owner-pages.module.css";
 
-const weekdays = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ nhật"];
-const defaultHours = (): MachineHour[] => weekdays.map((_, index) => ({ dayOfWeek: index + 1, closed: index > 4, opensAt: index > 4 ? null : "09:00", closesAt: index > 4 ? null : "18:00" }));
-const causes = ["MACHINE_FAILURE", "CHEMICALS_RUN_OUT", "CHEMICALS_EXPIRED", "POWER_OUTAGE", "OTHER"];
-type Form = { id?: number; machineCode: string; modelName: string; machineType: "PROCESSOR" | "SCANNER"; capacityPerHour: string; filmProcessIds: number[]; filmFormatIds: number[]; workingHours: MachineHour[] };
-const blankForm = (): Form => ({ machineCode: "", modelName: "", machineType: "PROCESSOR", capacityPerHour: "1", filmProcessIds: [], filmFormatIds: [], workingHours: defaultHours() });
-function completeHours(rows: MachineHour[]) { const byDay = new Map(rows.map((row) => [row.dayOfWeek, row])); return defaultHours().map((fallback) => ({ ...fallback, ...(byDay.get(fallback.dayOfWeek) ?? { closed: true, opensAt: null, closesAt: null }) })); }
+type Message = { tone: InlineMessageTone; text: string };
+const blankIncident = (): IncidentDraft => ({ cause: "MACHINE_FAILURE", description: "", unavailableFrom: "", expectedAt: "" });
 
 export function MachinesPage() {
-	const { lab } = useLabOwnerWorkspace(); const lock = useRef(false);
-	const [machines, setMachines] = useState<Machine[]>([]); const [processes, setProcesses] = useState<CatalogOption[]>([]); const [formats, setFormats] = useState<CatalogOption[]>([]);
-	const [form, setForm] = useState<Form>(blankForm); const [showForm, setShowForm] = useState(false); const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
-	const [settings, setSettings] = useState({ qc: "2", cap: "", commitment: "unselected" });
-	const [incidentMachine, setIncidentMachine] = useState<number | null>(null); const [cause, setCause] = useState("MACHINE_FAILURE"); const [description, setDescription] = useState(""); const [unavailableFrom, setUnavailableFrom] = useState(""); const [expectedAt, setExpectedAt] = useState(""); const [incidents, setIncidents] = useState<Record<number, MachineIncident>>({});
-	const load = useCallback(async (preserve = false) => { if (!preserve) setMessage(""); try { const [machineRows, processRows, formatRows] = await Promise.all([labOwnerApi<Machine[]>("film-labs/me/machines"), labOwnerApi<CatalogOption[]>("film-processes"), labOwnerApi<CatalogOption[]>("film-formats")]); setMachines(machineRows); setProcesses(processRows.filter((item) => item.status === "ACTIVE")); setFormats(formatRows.filter((item) => item.status === "ACTIVE")); } catch (error) { setMessage(error instanceof Error ? error.message : "Không tải được thiết bị."); } }, []);
-	useEffect(() => { void load(); }, [load]); useEffect(() => { setSettings((current) => ({ ...current, qc: String(lab?.qcBufferHours ?? 2), cap: lab?.expressDailyCapPercent == null ? "" : String(lab.expressDailyCapPercent) })); }, [lab]);
-	async function run(action: () => Promise<void>) { if (lock.current) return; lock.current = true; setBusy(true); try { await action(); } finally { lock.current = false; setBusy(false); } }
-	function validateHours(hours: MachineHour[]) { if (hours.length !== 7 || new Set(hours.map((row) => row.dayOfWeek)).size !== 7) throw new Error("Cần cấu hình đủ 7 ngày ISO."); hours.forEach((row) => { if (!row.closed && (!row.opensAt || !row.closesAt || row.opensAt >= row.closesAt)) throw new Error(`${weekdays[row.dayOfWeek - 1]} cần giờ mở trước giờ đóng.`); }); }
-	async function saveMachine(event: FormEvent) { event.preventDefault(); await run(async () => { setMessage(""); try { validateHours(form.workingHours); const capacity = Number(form.capacityPerHour); if (!Number.isInteger(capacity) || capacity < 1) throw new Error("Công suất/giờ phải là số nguyên dương."); if (form.machineType === "PROCESSOR" && !form.filmProcessIds.length) throw new Error("Máy tráng cần ít nhất một quy trình."); if (!form.filmFormatIds.length) throw new Error("Chọn ít nhất một khổ phim."); const body = { ...(form.id ? {} : { machineCode: form.machineCode, machineType: form.machineType }), modelName: form.modelName || null, capacityPerHour: capacity, filmProcessIds: form.machineType === "SCANNER" ? [] : form.filmProcessIds, filmFormatIds: form.filmFormatIds, workingHours: form.workingHours.map((row) => ({ dayOfWeek: row.dayOfWeek, closed: row.closed, opensAt: row.closed ? null : row.opensAt, closesAt: row.closed ? null : row.closesAt })) }; await labOwnerApi(`film-labs/me/machines${form.id ? `/${form.id}` : ""}`, { method: form.id ? "PUT" : "POST", body: JSON.stringify(body) }); setShowForm(false); setForm(blankForm()); setMessage(form.id ? "Đã cập nhật máy." : "Đã thêm máy."); await load(true); } catch (error) { setMessage(error instanceof Error ? error.message : "Không lưu được máy."); if (error instanceof LabOwnerApiError && error.status === 409) await load(true); } }); }
-	function edit(machine: Machine) { setForm({ id: machine.id, machineCode: machine.machineCode, modelName: machine.modelName ?? "", machineType: machine.machineType, capacityPerHour: String(machine.capacityPerHour), filmProcessIds: [...machine.filmProcessIds], filmFormatIds: [...machine.filmFormatIds], workingHours: completeHours(machine.workingHours) }); setShowForm(true); }
-	async function saveSettings() { const qc = Number(settings.qc); const cap = settings.cap === "" ? null : Number(settings.cap); if (settings.qc.trim() === "" || !Number.isInteger(qc) || qc < 0 || qc > 48) { setMessage("Giờ đệm QC phải là số nguyên từ 0 đến 48."); return; } if (cap !== null && (!Number.isInteger(cap) || cap < 1 || cap > 100)) { setMessage("Giới hạn Express phải từ 1 đến 100%, hoặc để trống."); return; } if (!["1", "2", "none"].includes(settings.commitment)) { setMessage("Profile không trả giá trị cam kết hiện tại; hãy chọn 1, 2 ngày hoặc rõ ràng không cấu hình."); return; } await run(async () => { try { await labOwnerApi("film-labs/me/scheduling-settings", { method: "PUT", body: JSON.stringify({ qcBufferHours: qc, expressDailyCapPercent: cap, expressCommitmentWorkingDays: settings.commitment === "none" ? null : Number(settings.commitment) }) }); setMessage("Đã lưu tham số lập lịch."); } catch (error) { setMessage(error instanceof Error ? error.message : "Không lưu được tham số."); } }); }
-	async function report(event: FormEvent) { event.preventDefault(); if (!incidentMachine) return; if (cause === "OTHER" && !description.trim()) { setMessage("Nguyên nhân OTHER cần mô tả."); return; } const from = new Date(unavailableFrom); const expected = expectedAt ? new Date(expectedAt) : null; if (!unavailableFrom || Number.isNaN(from.valueOf()) || (expected && (Number.isNaN(expected.valueOf()) || expected <= from))) { setMessage("Thời điểm dự kiến phải sau thời điểm bắt đầu."); return; } await run(async () => { try { const result = await labOwnerApi<MachineIncident>(`film-labs/me/machines/${incidentMachine}/incidents`, { method: "POST", body: JSON.stringify({ cause, description: description || null, unavailableFrom: from.toISOString(), expectedAvailableAt: expected?.toISOString() ?? null }) }); setIncidents((current) => ({ ...current, [incidentMachine]: result })); setIncidentMachine(null); setMessage(`Đã báo sự cố #${result.id}; ảnh hưởng ${result.affectedOrderCount} đơn.`); await load(true); } catch (error) { setMessage(error instanceof Error ? error.message : "Không báo được sự cố."); if (error instanceof LabOwnerApiError && error.status === 409) await load(true); } }); }
-	async function resolve(machineId: number) { const incident = incidents[machineId]; if (!incident) return; await run(async () => { try { const result = await labOwnerApi<MachineIncident>(`film-labs/me/machines/${machineId}/incidents/${incident.id}/resolve`, { method: "POST", body: "{}" }); setIncidents((current) => ({ ...current, [machineId]: result })); setMessage(`Đã giải quyết sự cố #${incident.id}.`); await load(true); } catch (error) { setMessage(error instanceof Error ? error.message : "Không giải quyết được sự cố."); if (error instanceof LabOwnerApiError && error.status === 409) await load(true); } }); }
+	const { lab } = useLabOwnerWorkspace();
+	const lock = useRef(false);
+	const hasLoaded = useRef(false);
+	const [machines, setMachines] = useState<Machine[]>([]);
+	const [processes, setProcesses] = useState<CatalogOption[]>([]);
+	const [formats, setFormats] = useState<CatalogOption[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [loadError, setLoadError] = useState("");
+	const [form, setForm] = useState<MachineForm>(blankForm);
+	const [showForm, setShowForm] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [message, setMessage] = useState<Message | null>(null);
+	const [settings, setSettings] = useState<SchedulingSettings>({ qc: "2", cap: "", commitment: "unselected" });
+	const [incidentMachine, setIncidentMachine] = useState<number | null>(null);
+	const [draft, setDraft] = useState<IncidentDraft>(blankIncident);
+	const [incidents, setIncidents] = useState<Record<number, MachineIncident>>({});
 
-	return <div className={styles.page}><header className={styles.heading}><div><p className={styles.eyebrow}>Công suất phòng lab</p><h1>Máy & lập lịch</h1><p>Công suất ngày do backend tính từ giờ vận hành.</p></div><Button onClick={() => { setForm(blankForm()); setShowForm(true); }}>Thêm máy</Button></header>{message && <p className={styles.demoNote} role="status">{message}</p>}
-	<section className={styles.stats}><div className={styles.stat}><span>Tổng máy</span><strong>{machines.length}</strong></div><div className={styles.stat}><span>Hoạt động</span><strong>{machines.filter((item) => item.status === "ACTIVE").length}</strong></div><div className={styles.stat}><span>Dừng / bảo trì</span><strong>{machines.filter((item) => item.status !== "ACTIVE").length}</strong></div><div className={styles.stat}><span>Công suất ngày</span><strong>{machines.reduce((sum, item) => sum + item.dailyCapacityRolls, 0)}</strong></div></section>
-	<section className={styles.panel}><div className={styles.panelHeader}><div><h2>Tham số lập lịch</h2><p>Cam kết Express hiện không có API đọc nên cần lựa chọn rõ ràng.</p></div></div><div className={styles.detailBody}><div className={styles.fieldGrid}><label className={styles.fieldLabel}>Giờ đệm QC<input className={styles.field} type="number" min="0" max="48" value={settings.qc} onChange={(event) => setSettings({ ...settings, qc: event.target.value })} /></label><label className={styles.fieldLabel}>Giới hạn Express (%)<input className={styles.field} type="number" min="1" max="100" value={settings.cap} onChange={(event) => setSettings({ ...settings, cap: event.target.value })} placeholder="Không giới hạn" /></label><label className={styles.fieldLabel}>Cam kết Express<select className={styles.select} value={settings.commitment} onChange={(event) => setSettings({ ...settings, commitment: event.target.value })}><option value="unselected">Cần chọn rõ ràng…</option><option value="1">1 ngày</option><option value="2">2 ngày</option><option value="none">Không cấu hình</option></select></label></div><Button disabled={busy} onClick={saveSettings}>Lưu tham số</Button></div></section>
-	<section className={styles.panel}><div className={styles.panelHeader}><div><h2>Thiết bị</h2><p>Không hiển thị lịch phân bổ giả khi backend chưa có API tổng hợp.</p></div></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Máy</th><th>Loại</th><th>Công suất</th><th>Process / format IDs</th><th>Trạng thái</th><th /></tr></thead><tbody>{machines.map((machine) => <tr key={machine.id}><td>{machine.machineCode}<small>{machine.modelName || "—"}</small></td><td>{machine.machineType}</td><td>{machine.capacityPerHour}/giờ<small>{machine.dailyCapacityRolls} cuộn/ngày</small></td><td>{machine.machineType === "SCANNER" ? "Scanner không dùng process" : machine.filmProcessIds.join(", ")}<small>Khổ: {machine.filmFormatIds.join(", ")}</small></td><td>{machine.status}</td><td><div className={styles.tableActions}><Button size="sm" variant="outline" onClick={() => edit(machine)}>Sửa</Button><Button size="sm" variant="outline" onClick={() => setIncidentMachine(machine.id)}>Báo sự cố</Button>{incidents[machine.id] && !incidents[machine.id].resolvedAt && <Button size="sm" onClick={() => resolve(machine.id)}>Giải quyết #{incidents[machine.id].id}</Button>}</div></td></tr>)}</tbody></table></div><p className={styles.demoNote}>Backend chưa có API đọc sự cố cũ; chỉ sự cố vừa báo trong phiên có ID để giải quyết.</p></section>
-	{Object.values(incidents).length > 0 && <section className={styles.panel}><div className={styles.panelHeader}><div><h2>Kết quả sự cố trong phiên</h2><p>Số đơn và thay đổi lịch do backend trả về.</p></div></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Sự cố / máy</th><th>Ảnh hưởng</th><th>Đơn</th><th>Thay đổi</th><th>Phản hồi</th></tr></thead><tbody>{Object.values(incidents).flatMap((incident) => incident.scheduleChanges.length ? incident.scheduleChanges.map((change) => <tr key={`${incident.id}-${change.id}`}><td>#{incident.id}<small>{incident.machineCode}</small></td><td>{incident.affectedOrderCount} đơn</td><td>#{change.serviceOrderId}</td><td>{change.stepApplied}<small>{formatDate(change.oldPromisedAt)} → {formatDate(change.newPromisedAt)}</small></td><td>{change.requiresResponse ? `Cần trước ${formatDate(change.responseDueAt)}` : "Không cần"}</td></tr>) : [<tr key={incident.id}><td>#{incident.id}<small>{incident.machineCode}</small></td><td>{incident.affectedOrderCount} đơn</td><td colSpan={3}>Không có thay đổi ngày hẹn.</td></tr>])}</tbody></table></div></section>}
-	{showForm && <div className={styles.overlay} onMouseDown={(event) => { if (event.target === event.currentTarget) setShowForm(false); }}><form className={styles.dialog} onSubmit={saveMachine}><h2>{form.id ? `Sửa ${form.machineCode}` : "Thêm máy"}</h2><div className={styles.fieldGrid}><label className={styles.fieldLabel}>Mã máy<input className={styles.field} required minLength={2} maxLength={50} readOnly={Boolean(form.id)} value={form.machineCode} onChange={(event) => setForm({ ...form, machineCode: event.target.value })} /></label><label className={styles.fieldLabel}>Loại<select className={styles.select} disabled={Boolean(form.id)} value={form.machineType} onChange={(event) => setForm({ ...form, machineType: event.target.value as Form["machineType"], filmProcessIds: event.target.value === "SCANNER" ? [] : form.filmProcessIds })}><option value="PROCESSOR">PROCESSOR</option><option value="SCANNER">SCANNER</option></select></label><label className={styles.fieldLabel}>Model<input className={styles.field} maxLength={150} value={form.modelName} onChange={(event) => setForm({ ...form, modelName: event.target.value })} /></label><label className={styles.fieldLabel}>Công suất/giờ<input className={styles.field} type="number" min="1" value={form.capacityPerHour} onChange={(event) => setForm({ ...form, capacityPerHour: event.target.value })} /></label></div>{form.machineType === "PROCESSOR" && <fieldset className={styles.detailBody}><legend>Quy trình</legend>{processes.map((item) => <label className={styles.scheduleToggle} key={item.id}><input type="checkbox" checked={form.filmProcessIds.includes(item.id)} onChange={(event) => setForm({ ...form, filmProcessIds: event.target.checked ? [...form.filmProcessIds, item.id] : form.filmProcessIds.filter((id) => id !== item.id) })} />{item.displayName}</label>)}</fieldset>}<fieldset className={styles.detailBody}><legend>Khổ phim</legend>{formats.map((item) => <label className={styles.scheduleToggle} key={item.id}><input type="checkbox" checked={form.filmFormatIds.includes(item.id)} onChange={(event) => setForm({ ...form, filmFormatIds: event.target.checked ? [...form.filmFormatIds, item.id] : form.filmFormatIds.filter((id) => id !== item.id) })} />{item.displayName}</label>)}</fieldset><fieldset className={styles.detailBody}><legend>Giờ vận hành</legend>{form.workingHours.map((row) => <div className={styles.fieldGrid} key={row.dayOfWeek}><label className={styles.scheduleToggle}><input type="checkbox" checked={!row.closed} onChange={(event) => setForm({ ...form, workingHours: form.workingHours.map((item) => item.dayOfWeek === row.dayOfWeek ? { ...item, closed: !event.target.checked, opensAt: event.target.checked ? item.opensAt ?? "09:00" : null, closesAt: event.target.checked ? item.closesAt ?? "18:00" : null } : item) })} />{weekdays[row.dayOfWeek - 1]}</label><input className={styles.field} type="time" disabled={row.closed} value={row.opensAt ?? ""} onChange={(event) => setForm({ ...form, workingHours: form.workingHours.map((item) => item.dayOfWeek === row.dayOfWeek ? { ...item, opensAt: event.target.value } : item) })} /><input className={styles.field} type="time" disabled={row.closed} value={row.closesAt ?? ""} onChange={(event) => setForm({ ...form, workingHours: form.workingHours.map((item) => item.dayOfWeek === row.dayOfWeek ? { ...item, closesAt: event.target.value } : item) })} /></div>)}</fieldset><div className={styles.dialogActions}><Button type="button" variant="outline" onClick={() => setShowForm(false)}>Hủy</Button><Button disabled={busy} type="submit">Lưu máy</Button></div></form></div>}
-	{incidentMachine && <div className={styles.overlay} onMouseDown={(event) => { if (event.target === event.currentTarget) setIncidentMachine(null); }}><form className={styles.dialog} onSubmit={report}><h2>Báo sự cố máy #{incidentMachine}</h2><label className={styles.fieldLabel}>Nguyên nhân<select className={styles.select} value={cause} onChange={(event) => setCause(event.target.value)}>{causes.map((item) => <option key={item}>{item}</option>)}</select></label><label className={styles.fieldLabel}>Mô tả<textarea className={styles.field} required={cause === "OTHER"} maxLength={500} value={description} onChange={(event) => setDescription(event.target.value)} /></label><label className={styles.fieldLabel}>Bắt đầu<input className={styles.field} required type="datetime-local" value={unavailableFrom} onChange={(event) => setUnavailableFrom(event.target.value)} /></label><label className={styles.fieldLabel}>Dự kiến hoạt động lại<input className={styles.field} type="datetime-local" value={expectedAt} onChange={(event) => setExpectedAt(event.target.value)} /></label><div className={styles.dialogActions}><Button type="button" variant="outline" onClick={() => setIncidentMachine(null)}>Hủy</Button><Button disabled={busy} type="submit">Ghi nhận</Button></div></form></div>}
+	const fail = (text: string) => setMessage({ tone: "error", text });
+	const succeed = (text: string) => setMessage({ tone: "success", text });
+
+	const load = useCallback(async () => {
+		try {
+			const [machineRows, processRows, formatRows] = await Promise.all([labOwnerApi<Machine[]>("film-labs/me/machines"), labOwnerApi<CatalogOption[]>("film-processes"), labOwnerApi<CatalogOption[]>("film-formats")]);
+			setMachines(machineRows);
+			setProcesses(processRows);
+			setFormats(formatRows);
+			setLoadError("");
+			hasLoaded.current = true;
+		} catch (error) {
+			const text = error instanceof Error ? error.message : "Không tải được thiết bị.";
+			if (hasLoaded.current) fail(text);
+			else setLoadError(text);
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+	useEffect(() => { void load(); }, [load]);
+	useEffect(() => { setSettings((current) => ({ ...current, qc: String(lab?.qcBufferHours ?? 2), cap: lab?.expressDailyCapPercent == null ? "" : String(lab.expressDailyCapPercent) })); }, [lab]);
+
+	function retryLoad() {
+		setLoading(true);
+		setLoadError("");
+		void load();
+	}
+
+	async function run(action: () => Promise<void>) {
+		if (lock.current) return;
+		lock.current = true; setBusy(true);
+		try { await action(); } finally { lock.current = false; setBusy(false); }
+	}
+
+	async function saveMachine(event: FormEvent) {
+		event.preventDefault();
+		await run(async () => {
+			setMessage(null);
+			try {
+				validateHours(form.workingHours);
+				const capacity = Number(form.capacityPerHour);
+				if (!Number.isInteger(capacity) || capacity < 1) throw new Error("Công suất mỗi giờ phải là số nguyên dương.");
+				if (form.machineType === "PROCESSOR" && !form.filmProcessIds.length) throw new Error("Máy tráng cần ít nhất một quy trình.");
+				if (!form.filmFormatIds.length) throw new Error("Chọn ít nhất một khổ phim.");
+				const body = {
+					...(form.id ? {} : { machineCode: form.machineCode, machineType: form.machineType }),
+					modelName: form.modelName || null,
+					capacityPerHour: capacity,
+					filmProcessIds: form.machineType === "SCANNER" ? [] : form.filmProcessIds,
+					filmFormatIds: form.filmFormatIds,
+					workingHours: form.workingHours.map((row) => ({ dayOfWeek: row.dayOfWeek, closed: row.closed, opensAt: row.closed ? null : row.opensAt, closesAt: row.closed ? null : row.closesAt })),
+				};
+				await labOwnerApi(`film-labs/me/machines${form.id ? `/${form.id}` : ""}`, { method: form.id ? "PUT" : "POST", body: JSON.stringify(body) });
+				setShowForm(false);
+				setForm(blankForm());
+				succeed(form.id ? "Đã cập nhật máy." : "Đã thêm máy.");
+				await load();
+			} catch (error) {
+				fail(error instanceof Error ? error.message : "Không lưu được máy.");
+				if (error instanceof LabOwnerApiError && error.status === 409) await load();
+			}
+		});
+	}
+
+	async function saveSettings() {
+		const qc = Number(settings.qc);
+		const cap = settings.cap === "" ? null : Number(settings.cap);
+		if (settings.qc.trim() === "" || !Number.isInteger(qc) || qc < 0 || qc > 48) { fail("Giờ đệm kiểm tra chất lượng phải là số nguyên từ 0 đến 48."); return; }
+		if (cap !== null && (!Number.isInteger(cap) || cap < 1 || cap > 100)) { fail("Giới hạn Express phải từ 1 đến 100%, hoặc để trống."); return; }
+		if (!["1", "2", "none"].includes(settings.commitment)) { fail("Hãy chọn cam kết thời gian Express (1 ngày, 2 ngày hoặc không cấu hình)."); return; }
+		await run(async () => {
+			try {
+				await labOwnerApi("film-labs/me/scheduling-settings", { method: "PUT", body: JSON.stringify({ qcBufferHours: qc, expressDailyCapPercent: cap, expressCommitmentWorkingDays: settings.commitment === "none" ? null : Number(settings.commitment) }) });
+				succeed("Đã lưu tham số lập lịch.");
+			} catch (error) { fail(error instanceof Error ? error.message : "Không lưu được tham số."); }
+		});
+	}
+
+	async function report(event: FormEvent) {
+		event.preventDefault();
+		if (!incidentMachine) return;
+		if (draft.cause === "OTHER" && !draft.description.trim()) { fail("Nguyên nhân khác cần có mô tả."); return; }
+		const from = new Date(draft.unavailableFrom);
+		const expected = draft.expectedAt ? new Date(draft.expectedAt) : null;
+		if (!draft.unavailableFrom || Number.isNaN(from.valueOf()) || (expected && (Number.isNaN(expected.valueOf()) || expected <= from))) { fail("Thời điểm dự kiến hoạt động lại phải sau thời điểm bắt đầu."); return; }
+		await run(async () => {
+			try {
+				const result = await labOwnerApi<MachineIncident>(`film-labs/me/machines/${incidentMachine}/incidents`, { method: "POST", body: JSON.stringify({ cause: draft.cause, description: draft.description || null, unavailableFrom: from.toISOString(), expectedAvailableAt: expected?.toISOString() ?? null }) });
+				setIncidents((current) => ({ ...current, [incidentMachine]: result }));
+				setIncidentMachine(null);
+				setDraft(blankIncident());
+				succeed(`Đã ghi nhận sự cố máy ${result.machineCode}; ảnh hưởng ${result.affectedOrderCount} đơn.`);
+				await load();
+			} catch (error) {
+				fail(error instanceof Error ? error.message : "Không báo được sự cố.");
+				if (error instanceof LabOwnerApiError && error.status === 409) await load();
+			}
+		});
+	}
+
+	async function resolve(machineId: number) {
+		const incident = incidents[machineId];
+		if (!incident) return;
+		await run(async () => {
+			try {
+				const result = await labOwnerApi<MachineIncident>(`film-labs/me/machines/${machineId}/incidents/${incident.id}/resolve`, { method: "POST", body: "{}" });
+				setIncidents((current) => ({ ...current, [machineId]: result }));
+				succeed(`Đã giải quyết sự cố máy ${incident.machineCode}.`);
+				await load();
+			} catch (error) {
+				fail(error instanceof Error ? error.message : "Không giải quyết được sự cố.");
+				if (error instanceof LabOwnerApiError && error.status === 409) await load();
+			}
+		});
+	}
+
+	const activeProcesses = processes.filter((item) => item.status === "ACTIVE");
+	const activeFormats = formats.filter((item) => item.status === "ACTIVE");
+	const incidentList = Object.values(incidents);
+	const reportingMachine = machines.find((machine) => machine.id === incidentMachine);
+	const dialogError = message?.tone === "error" && (showForm || incidentMachine !== null) ? message.text : undefined;
+	const ready = !loading && !loadError;
+	const stat = (value: number) => (ready ? value : "—");
+
+	return <div className={styles.page}>
+		<header className={styles.heading}>
+			<div><p className={styles.eyebrow}>Công suất phòng lab</p><h1>Máy và lập lịch</h1><p>Công suất mỗi ngày được tính từ giờ vận hành của từng máy.</p></div>
+			<Button onClick={() => { setForm(blankForm()); setMessage(null); setShowForm(true); }}>Thêm máy</Button>
+		</header>
+		{message && !dialogError && <InlineMessage tone={message.tone}>{message.text}</InlineMessage>}
+		<section className={styles.stats} aria-label="Tóm tắt công suất">
+			<div className={styles.stat}><span>Tổng số máy</span><strong>{stat(machines.length)}</strong></div>
+			<div className={styles.stat}><span>Đang hoạt động</span><strong>{stat(machines.filter((item) => item.status === "ACTIVE").length)}</strong></div>
+			<div className={styles.stat}><span>Dừng hoặc bảo trì</span><strong>{stat(machines.filter((item) => item.status !== "ACTIVE").length)}</strong></div>
+			<div className={styles.stat}><span>Công suất mỗi ngày (cuộn)</span><strong>{stat(machines.reduce((sum, item) => sum + item.dailyCapacityRolls, 0))}</strong></div>
+		</section>
+		<SchedulingSettingsPanel settings={settings} onChange={setSettings} busy={busy} onSave={() => void saveSettings()} />
+		<section className={styles.panel} aria-labelledby="machines-title" aria-busy={loading}>
+			<div className={styles.panelHeader}><div><h2 id="machines-title">Thiết bị</h2><p>Máy tráng và máy scan đang khai báo cho lab.</p></div></div>
+			{loading && <div className={styles.detailBody}><StatePanel variant="loading" rows={4} label="Đang tải danh sách máy…" /></div>}
+			{!loading && loadError && <div className={styles.detailBody}><StatePanel variant="error" title="Không tải được danh sách máy" description={loadError} onRetry={retryLoad} /></div>}
+			{ready && machines.length === 0 && <div className={styles.detailBody}><StatePanel variant="empty" title="Chưa có máy nào" description="Thêm máy tráng và máy scan để hệ thống xếp lịch cho đơn." action={<Button onClick={() => { setForm(blankForm()); setMessage(null); setShowForm(true); }}>Thêm máy</Button>} /></div>}
+			{ready && machines.length > 0 && <>
+				<MachinesTable machines={machines} processes={processes} formats={formats} incidents={incidents} busy={busy} onEdit={(machine) => { setForm(formFromMachine(machine)); setMessage(null); setShowForm(true); }} onReport={(machineId) => { setMessage(null); setIncidentMachine(machineId); }} onResolve={(machineId) => void resolve(machineId)} />
+				<div className={styles.detailBody}><InlineMessage tone="info">Nút giải quyết chỉ xuất hiện với sự cố bạn vừa báo trong phiên làm việc này.</InlineMessage></div>
+			</>}
+		</section>
+		{incidentList.length > 0 && <IncidentResultsPanel incidents={incidentList} />}
+		<MachineFormDialog open={showForm} onOpenChange={setShowForm} form={form} onChange={setForm} processes={activeProcesses} formats={activeFormats} busy={busy} error={showForm ? dialogError : undefined} onSubmit={(event) => void saveMachine(event)} />
+		<IncidentDialog open={incidentMachine !== null} onOpenChange={(open) => { if (!open) setIncidentMachine(null); }} machineCode={reportingMachine?.machineCode ?? ""} draft={draft} onChange={setDraft} busy={busy} error={incidentMachine !== null ? dialogError : undefined} onSubmit={(event) => void report(event)} />
 	</div>;
 }
