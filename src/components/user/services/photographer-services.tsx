@@ -25,6 +25,7 @@ import {
 	type FilmLabSummary,
 	type FilmStock,
 	type OrderPayload,
+	type OrderPaymentMethod,
 	type OrderQuote,
 	type RollDraft,
 	type ServicePackage,
@@ -440,6 +441,7 @@ function Booking({
 	const [stocks, setStocks] = useState<FilmStock[]>([]);
 	const [stockError, setStockError] = useState(false);
 	const [handover, setHandover] = useState<"SELF_DROP_OFF" | "PICKUP">("SELF_DROP_OFF");
+	const [paymentMethod, setPaymentMethod] = useState<OrderPaymentMethod>("PAY_AT_LAB");
 	const [pickup, setPickup] = useState({
 		address: "",
 		district: "",
@@ -467,7 +469,7 @@ function Booking({
 			filmLabId: lab.id,
 			serviceTier: "STANDARD",
 			filmHandoverMethod: handover,
-			paymentMethod: "PAY_AT_LAB",
+			paymentMethod,
 			specialRequest: specialRequest.trim() || null,
 			customerAddressLine: handover === "PICKUP" ? pickup.address.trim() || null : null,
 			customerDistrict: handover === "PICKUP" ? pickup.district.trim() || null : null,
@@ -481,7 +483,7 @@ function Booking({
 				filmStockNameText: roll.filmStockId ? null : roll.filmStockNameText?.trim() || null,
 			})),
 		}),
-		[handover, lab.id, pickup, rolls, specialRequest],
+		[handover, lab.id, paymentMethod, pickup, rolls, specialRequest],
 	);
 	const materialKey = JSON.stringify(payload);
 	currentPayloadKey.current = materialKey;
@@ -611,7 +613,6 @@ function Booking({
 	}
 
 	const unavailableNote = [
-		"thanh toán trực tuyến",
 		lowerFirst(paymentMethodLabel("COD")),
 		`hạng ${lowerFirst(serviceTierLabel("EXPRESS"))}`,
 		lowerFirst(handoverMethodLabel("PARCEL_SHIPPING")),
@@ -832,6 +833,36 @@ function Booking({
 							</fieldset>
 						) : null}
 
+						<h2 id="payment-heading">Thanh toán</h2>
+						<div role="radiogroup" aria-labelledby="payment-heading">
+							<label className="photographer-choice">
+								<input
+									type="radio"
+									name="payment-method"
+									disabled={createAttempted}
+									checked={paymentMethod === "PAY_AT_LAB"}
+									onChange={() => setPaymentMethod("PAY_AT_LAB")}
+								/>{" "}
+								{paymentMethodLabel("PAY_AT_LAB")}
+							</label>
+							<label className="photographer-choice">
+								<input
+									type="radio"
+									name="payment-method"
+									disabled={createAttempted}
+									checked={paymentMethod === "ONLINE"}
+									onChange={() => setPaymentMethod("ONLINE")}
+								/>{" "}
+								Thanh toán trực tuyến qua VNPay
+							</label>
+						</div>
+						{paymentMethod === "ONLINE" ? (
+							<InlineMessage tone="warning" title="Thanh toán VNPay đang thử nghiệm" className="my-3">
+								Đơn sẽ được tạo ở trạng thái chờ thanh toán. Hiện backend chưa gắn VNPay vào đơn (FA26-157), nên
+								trang đơn sẽ hiện thông tin kiểm tra thay vì link thanh toán.
+							</InlineMessage>
+						) : null}
+
 						<label className="service-order-field">
 							<span>Yêu cầu đặc biệt (tối đa 500 ký tự)</span>
 							<textarea
@@ -843,7 +874,8 @@ function Booking({
 						</label>
 
 						<p className="marketplace-demo-note">
-							Hạng {serviceTierLabel("STANDARD")} · {lowerFirst(paymentMethodLabel("PAY_AT_LAB"))}. Hiện chưa
+							Hạng {serviceTierLabel("STANDARD")} ·{" "}
+							{paymentMethod === "ONLINE" ? "thanh toán trực tuyến qua VNPay" : lowerFirst(paymentMethodLabel("PAY_AT_LAB"))}. Hiện chưa
 							khả dụng: {unavailableNote}.
 						</p>
 

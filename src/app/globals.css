@@ -1406,3 +1406,10 @@ button.community-feed-action:hover, button.community-feed-action:focus-visible {
   .order-payment-row__side p { justify-content: flex-start; }
   .photographer-pagination [data-slot="button"] { flex: 1 1 auto; }
 }
+
+/* Order payment diagnostics (WF-02, FA26-157 investigation) */
+.order-payment-diagnostics { margin-top: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface-muted); }
+.order-payment-diagnostics > summary { min-height: 2.75rem; display: flex; align-items: center; padding: 0 0.875rem; cursor: pointer; font-size: 0.875rem; font-weight: 600; }
+.order-payment-diagnostics > summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.order-payment-diagnostics > p { margin: 0 0.875rem; }
+.order-payment-diagnostics pre { margin: 0.5rem 0.875rem 0.875rem; max-height: 22rem; overflow: auto; padding: 0.75rem; border-radius: var(--radius-control); background: var(--surface); font-size: 0.75rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -30,6 +30,7 @@ import {
 import { OrderStatusBadge, PaymentStatusBadge, RollStatusBadge } from "@/components/shared/status/status-badge";
 import { formatDate, formatMoney } from "@/lib/format";
 import { useUserWorkspace } from "../user-workspace";
+import { OrderPaymentPanel } from "./order-payment-panel";
 import {
 	errorMessage,
 	isPhotographerRole,
@@ -423,6 +424,8 @@ export function PhotographerOrderDetail({ orderId }: { orderId: number }) {
 							<p className="order-card-description">Chưa có lần bàn giao nào.</p>
 						)}
 					</section>
+
+					{order.status === "AWAITING_PAYMENT" ? <OrderPaymentPanel order={order} /> : null}
 
 					{order.status === "DELIVERED" ? (
 						<section className="order-tracking-card order-confirm-card" aria-labelledby="order-confirm-heading">
