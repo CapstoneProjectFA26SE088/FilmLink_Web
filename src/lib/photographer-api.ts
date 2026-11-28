@@ -19,6 +19,17 @@ export type ServicePackage = {
 export type FilmLabSummary = { id: number; labName: string; addressLine: string; district: string; province: string; coverImageUrl: string | null; minPriceVnd: number; distanceKm: number | null };
 export type FilmLab = { id: number; labName: string; description: string | null; addressLine: string; district: string; province: string; latitude: number | null; longitude: number | null; openingHours: { dayOfWeek: number; closed: boolean; opensAt: string | null; closesAt: string | null }[]; images: { id: number; displayOrder: number; url: string }[]; packages: ServicePackage[] };
 
+export type OrderPayment = {
+	id: number;
+	transactionCode: string;
+	serviceOrderId: number;
+	amountVnd: number;
+	purpose: string;
+	method: string;
+	status: string;
+	createdAt: string;
+};
+
 export type OrderStatus = "AWAITING_PAYMENT" | "AWAITING_LAB_CONFIRMATION" | "AWAITING_FILM" | "AWAITING_MACHINE_ASSIGNMENT" | "IN_PROCESSING" | "AWAITING_TOP_UP" | "READY_FOR_HANDOVER" | "DELIVERED" | "CLOSED" | "CANCELLED" | "SUSPENDED";
 export type OrderSummary = { id: number; orderCode: string; status: OrderStatus; filmLabId: number; labName: string; rollCount: number; estimatedTotalVnd: number | null; finalTotalVnd: number | null; expectedReturnAt: string | null; promisedReturnAt: string | null; createdAt: string };
 export type FilmRoll = { id: number; rollSequence: number; filmStockId: number | null; filmStockNameText: string | null; filmFormatId: number; filmProcessId: number; servicePackageId: number; servicePackageScanOptionId: number | null; exposureCount: number; shootingIso: number | null; pushPullStops: number; unitPriceVnd: number; scanOptionPriceVnd: number; pushPullSurchargeVnd: number; expressSurchargeVnd: number; status: string; archiveRollId: number | null };
@@ -65,6 +76,7 @@ export const photographerApi = {
 	quote: (payload: OrderPayload) => request<OrderQuote>("orders/quote", json(payload)),
 	createOrder: (payload: OrderPayload) => request<{ id: number; orderCode: string }>("orders", json(payload)),
 	orders: (params: Record<string, string | number | null | undefined>) => request<PageResponse<OrderSummary>>(`orders${query(params)}`),
+	orderPayments: (id: number, signal?: AbortSignal) => request<OrderPayment[]>(`payments/by-order/${id}`, { signal }),
 	order: (id: number) => request<OrderDetail>(`orders/${id}`),
 	cancelOrder: (id: number, reason: string) => request<OrderDetail>(`orders/${id}/cancel`, json({ reason })),
 	confirmReceipt: (id: number) => request<OrderDetail>(`orders/${id}/confirm-receipt`, json({})),
@@ -93,3 +105,6 @@ export function isSafeHttpUrl(value: string | null): value is string {
 	if (!value) return false;
 	try { const url = new URL(value); return url.protocol === "http:" || url.protocol === "https:"; } catch { return false; }
 }
+
+export { formatDate, formatDateOnly, formatMoney } from "@/lib/format";
+export { orderStatusLabel, orderStatusTone } from "@/components/shared/status/labels";
