@@ -1,3 +1,4 @@
+import { labelsOf, ORDER_STATUS_MAP, PROCESSING_STAGE_MAP } from "@/components/shared/status/labels";
 export class LabOwnerApiError extends Error {
 	constructor(message: string, public status: number, public details?: Record<string, unknown>) {
 		super(message);
@@ -35,10 +36,7 @@ export type CatalogOption = { id: number; code: string; displayName: string; sta
 export type ScheduleChange = { id: number; serviceOrderId: number; stepApplied: string; oldPromisedAt: string | null; newPromisedAt: string | null; requiresResponse: boolean; responseDueAt: string | null };
 export type MachineIncident = { id: number; machineId: number; machineCode: string; cause: string; description: string | null; unavailableFrom: string; expectedAvailableAt: string | null; machineStatusAfter: string; resolvedAt: string | null; affectedOrderCount: number; scheduleChanges: ScheduleChange[]; createdAt: string };
 
-export const STATUS_LABELS: Record<string, string> = {
-	AWAITING_PAYMENT: "Chờ thanh toán", AWAITING_LAB_CONFIRMATION: "Chờ lab xác nhận", AWAITING_FILM: "Chờ nhận phim", AWAITING_MACHINE_ASSIGNMENT: "Chờ xếp máy", IN_PROCESSING: "Đang xử lý", AWAITING_TOP_UP: "Chờ thanh toán bổ sung", READY_FOR_HANDOVER: "Chờ bàn giao", DELIVERED: "Đã bàn giao", CLOSED: "Đã đóng", CANCELLED: "Đã hủy", SUSPENDED: "Tạm ngưng",
-};
-export const STAGE_LABELS: Record<ProcessingStage, string> = { RECEIVED: "Đã nhận", DEVELOPING: "Tráng phim", WASHING: "Rửa phim", DRYING: "Sấy khô", SCANNING: "Scan", QC: "Kiểm tra chất lượng" };
-export function formatDate(value: string | null | undefined) { return value ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)) : "—"; }
-export function formatMoney(value: number | null | undefined) { return value == null ? "—" : `${value.toLocaleString("vi-VN")} ₫`; }
+export const STATUS_LABELS: Record<string, string> = labelsOf(ORDER_STATUS_MAP);
+export const STAGE_LABELS: Record<ProcessingStage, string> = labelsOf(PROCESSING_STAGE_MAP) as Record<ProcessingStage, string>;
+export { formatDate, formatMoney } from "@/lib/format";
 export function safeHttpUrl(value: string | null | undefined) { try { const url = new URL(value ?? ""); return ["http:", "https:"].includes(url.protocol) ? url.href : null; } catch { return null; } }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { validDamageNote } from "@/lib/roll-damage"
 import {
   apiUrl,
   clearSessionCookies,
@@ -21,9 +22,10 @@ const HANDOVER_IMAGE_TYPES = new Set(["image/jpeg", "image/png"])
 const SCAN_IMAGE_TYPES = new Set(["image/jpeg"])
 
 type RouteContext = { params: Promise<{ path: string[] }> }
-type OrderUpload = "receipt" | "scans" | "film-return"
+type OrderUpload = "receipt" | "scans" | "film-return" | "damage"
 
 function orderUploadFor(path: string): OrderUpload | null {
+  if (/^lab\/orders\/\d+\/rolls\/\d+\/damage$/.test(path)) return "damage"
   if (/^lab\/orders\/\d+\/rolls\/\d+\/scans$/.test(path)) return "scans"
   const action = /^lab\/orders\/\d+\/(receipt|film-return)$/.exec(path)?.[1]
   return action === "receipt" || action === "film-return" ? action : null
@@ -44,8 +46,10 @@ async function prepareOrderMultipart(request: NextRequest, action: OrderUpload) 
   if (contentType?.split(";", 1)[0].trim().toLowerCase() !== "multipart/form-data") {
     return uploadError("Yêu cầu tải ảnh phải dùng multipart/form-data.", 415)
   }
-  const tooLarge = () => uploadError("Tổng dung lượng tải lên không được vượt quá 50 MB.", 413)
-  if (Number(request.headers.get("content-length")) > MAX_ORDER_MULTIPART_BYTES) return tooLarge()
+  // Damage reports allow ten 10 MiB photos plus the JSON part and multipart framing.
+  const maxBytes = action === "damage" ? 10 * MAX_LAB_IMAGE_BYTES + 1024 * 1024 : MAX_ORDER_MULTIPART_BYTES
+  const tooLarge = () => uploadError(`Tổng dung lượng tải lên không được vượt quá ${maxBytes / 1024 / 1024} MB.`, 413)
+  if (Number(request.headers.get("content-length")) > maxBytes) return tooLarge()
   if (!request.body) return uploadError("Dữ liệu tải lên không hợp lệ.")
 
   let incoming: FormData
@@ -53,14 +57,14 @@ async function prepareOrderMultipart(request: NextRequest, action: OrderUpload) 
   const limitedBody = request.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
       count += chunk.byteLength
-      if (count > MAX_ORDER_MULTIPART_BYTES) controller.error(new Error("Upload limit exceeded"))
+      if (count > maxBytes) controller.error(new Error("Upload limit exceeded"))
       else controller.enqueue(chunk)
     },
   }))
   try {
     incoming = await new Response(limitedBody, { headers: { "content-type": contentType } }).formData()
   } catch {
-    return count > MAX_ORDER_MULTIPART_BYTES ? tooLarge() : uploadError("Dữ liệu tải lên không hợp lệ.")
+    return count > maxBytes ? tooLarge() : uploadError("Dữ liệu tải lên không hợp lệ.")
   }
 
   if (action === "scans") {
@@ -92,8 +96,11 @@ async function prepareOrderMultipart(request: NextRequest, action: OrderUpload) 
   } catch {
     return uploadError("Phần data JSON không hợp lệ.")
   }
+  if (action === "damage" && !validDamageNote(metadata.damageNote)) {
+    return uploadError("Mô tả tình trạng hỏng phải có từ 1 đến 500 ký tự.")
+  }
   const photos = incoming.getAll("photos")
-  const needsPhotos = action === "receipt" || metadata.keepNegativesAtLab === false
+  const needsPhotos = action === "receipt" || action === "damage" || metadata.keepNegativesAtLab === false
   if (
     (needsPhotos && photos.length === 0) || photos.length > 10
     || invalidFiles(photos, MAX_LAB_IMAGE_BYTES, HANDOVER_IMAGE_TYPES)
