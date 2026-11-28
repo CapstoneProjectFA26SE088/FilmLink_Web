@@ -1,5 +1,6 @@
 "use client"
 
+import { useHydrated } from "@/hooks/use-hydrated"
 import Link from "next/link"
 import { useState, type FormEvent } from "react"
 import { ArrowLeft, CheckCircle2 } from "lucide-react"
@@ -23,6 +24,7 @@ async function postJson(path: string, body: object) {
 }
 
 export function ForgotPasswordForm() {
+  const hydrated = useHydrated()
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
   const [resetToken, setResetToken] = useState("")
@@ -75,9 +77,9 @@ export function ForgotPasswordForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {step === "email" && <form onSubmit={submitEmail}><FieldGroup><Field><FieldLabel htmlFor="email">Email</FieldLabel><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></Field>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button disabled={pending}>{pending ? "Đang gửi..." : "Gửi mã OTP"}</Button><FieldDescription>Vì lý do bảo mật, hệ thống luôn hiển thị cùng một kết quả dù email có tồn tại hay không.</FieldDescription></FieldGroup></form>}
-        {step === "otp" && <form onSubmit={submitOtp}><FieldGroup><Field><FieldLabel htmlFor="otp">Mã OTP</FieldLabel><Input id="otp" name="otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} placeholder="000000" required /></Field>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button disabled={pending}>{pending ? "Đang xác minh..." : "Xác minh OTP"}</Button><Button type="button" variant="outline" onClick={() => { setStep("email"); setError("") }}>Đổi email</Button></FieldGroup></form>}
-        {step === "password" && <form onSubmit={submitPassword}><FieldGroup><Field><FieldLabel htmlFor="password">Mật khẩu mới</FieldLabel><Input id="password" name="password" type="password" minLength={8} maxLength={72} autoComplete="new-password" required /></Field><Field><FieldLabel htmlFor="confirmation">Xác nhận mật khẩu</FieldLabel><Input id="confirmation" name="confirmation" type="password" minLength={8} maxLength={72} autoComplete="new-password" required /></Field>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button disabled={pending}>{pending ? "Đang cập nhật..." : "Đặt lại mật khẩu"}</Button></FieldGroup></form>}
+        {step === "email" && <form method="post" onSubmit={submitEmail}><FieldGroup><Field><FieldLabel htmlFor="email">Email</FieldLabel><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></Field>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button type="submit" disabled={!hydrated || pending}>{pending ? "Đang gửi..." : "Gửi mã OTP"}</Button><FieldDescription>Vì lý do bảo mật, hệ thống luôn hiển thị cùng một kết quả dù email có tồn tại hay không.</FieldDescription></FieldGroup></form>}
+        {step === "otp" && <form method="post" onSubmit={submitOtp}><FieldGroup><Field><FieldLabel htmlFor="otp">Mã OTP</FieldLabel><Input id="otp" name="otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} placeholder="000000" required /></Field>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button type="submit" disabled={!hydrated || pending}>{pending ? "Đang xác minh..." : "Xác minh OTP"}</Button><Button type="button" variant="outline" onClick={() => { setStep("email"); setError("") }}>Đổi email</Button></FieldGroup></form>}
+        {step === "password" && <form method="post" onSubmit={submitPassword}><FieldGroup><Field><FieldLabel htmlFor="password">Mật khẩu mới</FieldLabel><Input id="password" name="password" type="password" minLength={8} maxLength={72} autoComplete="new-password" required /></Field><Field><FieldLabel htmlFor="confirmation">Xác nhận mật khẩu</FieldLabel><Input id="confirmation" name="confirmation" type="password" minLength={8} maxLength={72} autoComplete="new-password" required /></Field>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button type="submit" disabled={!hydrated || pending}>{pending ? "Đang cập nhật..." : "Đặt lại mật khẩu"}</Button></FieldGroup></form>}
         {step === "done" && <div className="flex flex-col gap-4"><CheckCircle2 className="text-success" aria-hidden="true" /><Button render={<Link href="/login" />}>Đăng nhập ngay</Button></div>}
         {step !== "done" && <Link href="/login" className="mt-5 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Quay lại đăng nhập</Link>}
       </CardContent>

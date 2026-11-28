@@ -1,5 +1,6 @@
 "use client";
 
+import { useHydrated } from "@/hooks/use-hydrated"
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const EMPTY_FIELDS: PasswordFields = {
 };
 
 export function ChangePasswordForm() {
+  const hydrated = useHydrated()
 	const router = useRouter();
 	const [fields, setFields] = useState(EMPTY_FIELDS);
 	const [pending, setPending] = useState(false);
@@ -81,7 +83,7 @@ export function ChangePasswordForm() {
 	}
 
 	return (
-		<form className="account-password-form" onSubmit={handleSubmit}>
+		<form method="post" className="account-password-form" onSubmit={handleSubmit}>
 			<FieldSet>
 				<FieldLegend>Đổi mật khẩu</FieldLegend>
 				<p className="account-password-description">
@@ -130,7 +132,7 @@ export function ChangePasswordForm() {
 			</FieldSet>
 			{error && <p className="account-password-message account-password-message--error" role="alert">{error}</p>}
 			{success && <p className="account-password-message account-password-message--success" role="status">Mật khẩu đã được đổi. Bạn sẽ được chuyển đến trang đăng nhập để đăng nhập lại.</p>}
-			<Button type="submit" disabled={pending}>
+			<Button type="submit" disabled={!hydrated || pending}>
 				{pending ? "Đang cập nhật…" : "Cập nhật mật khẩu"}
 			</Button>
 		</form>

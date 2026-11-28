@@ -1,5 +1,7 @@
 "use client"
 
+import { isExpertRole, nonExpertHome } from "@/lib/expert-access"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -28,6 +30,7 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const hydrated = useHydrated()
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
@@ -59,17 +62,11 @@ export function LoginForm({
         ? ((await accountResponse.json()) as AccountResponse)
         : null
 
-      const destination =
-        account?.role === "ADMIN"
-          ? "/admin"
-          : account?.role === "MODERATOR"
-            ? "/moderation"
-          : account?.role === "FILM_LAB_OWNER"
-            ? "/lab-owner"
-            : account?.role === "PHOTOGRAPHY_EXPERT" || account?.role === "EXPERT"
-              ? "/dashboard"
-            : "/dashboard"
-      router.replace(destination)
+      if (!account?.role) {
+        setError("Chưa tải được thông tin tài khoản. Vui lòng thử lại.")
+        return
+      }
+      router.replace(isExpertRole(account.role) ? "/expert" : nonExpertHome(account.role))
       router.refresh()
     } catch {
       setError("Không kết nối được máy chủ. Vui lòng thử lại sau.")
@@ -82,13 +79,13 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Đăng nhập FilmLink</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Sử dụng email đã đăng ký để tiếp tục.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form method="post" onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -103,12 +100,12 @@ export function LoginForm({
               </Field>
               <Field>
                 <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
                   <Link
                     href="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
-                    Forgot your password?
+                    Quên mật khẩu?
                   </Link>
                 </div>
                 <Input
@@ -125,20 +122,12 @@ export function LoginForm({
                 </p>
               ) : null}
               <Field>
-                <Button type="submit" disabled={pending}>
-                  {pending ? "Signing in…" : "Login"}
-                </Button>
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled
-                  aria-label="Google sign-in is not available yet"
-                >
-                  Login with Google
+                <Button type="submit" disabled={!hydrated || pending}>
+                  {pending ? "Đang đăng nhập…" : "Đăng nhập"}
                 </Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account?{" "}
-                  <Link href="/register">Sign up</Link>
+                  Chưa có tài khoản?{" "}
+                  <Link href="/register">Đăng ký</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

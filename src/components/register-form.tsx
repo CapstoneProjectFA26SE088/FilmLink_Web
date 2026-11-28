@@ -1,5 +1,6 @@
 "use client"
 
+import { useHydrated } from "@/hooks/use-hydrated"
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -23,6 +24,7 @@ export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const hydrated = useHydrated()
   const router = useRouter()
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [awaitingOtp, setAwaitingOtp] = useState(false)
@@ -145,7 +147,7 @@ export function RegisterForm({
         </CardHeader>
         <CardContent>
           {awaitingOtp ? (
-            <form onSubmit={handleVerify}>
+            <form method="post" onSubmit={handleVerify}>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="otp">Email verification code</FieldLabel>
@@ -165,7 +167,7 @@ export function RegisterForm({
                 {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
                 {notice ? <p role="status" className="text-sm text-muted-foreground">{notice}</p> : null}
                 <Field>
-                  <Button type="submit" disabled={pending}>
+                  <Button type="submit" disabled={!hydrated || pending}>
                     {pending ? "Verifying…" : "Verify email"}
                   </Button>
                   <Button type="button" variant="outline" disabled={resending} onClick={handleResend}>
@@ -178,7 +180,7 @@ export function RegisterForm({
               </FieldGroup>
             </form>
           ) : (
-            <form onSubmit={handleRegister}>
+            <form method="post" onSubmit={handleRegister}>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="full-name">Full Name</FieldLabel>
@@ -250,7 +252,7 @@ export function RegisterForm({
                 {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
                 {notice ? <p role="status" className="text-sm text-muted-foreground">{notice}</p> : null}
                 <Field>
-                  <Button type="submit" disabled={pending}>
+                  <Button type="submit" disabled={!hydrated || pending}>
                     {pending ? "Creating account…" : "Create Account"}
                   </Button>
                   <Button
