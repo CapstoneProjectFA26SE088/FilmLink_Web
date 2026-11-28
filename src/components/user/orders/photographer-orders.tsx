@@ -31,6 +31,7 @@ import { OrderStatusBadge, PaymentStatusBadge, RollStatusBadge } from "@/compone
 import { formatDate, formatMoney } from "@/lib/format";
 import { useUserWorkspace } from "../user-workspace";
 import { OrderPaymentPanel } from "./order-payment-panel";
+import { ScheduleChangeAnswer } from "./schedule-change-answer";
 import {
 	errorMessage,
 	isPhotographerRole,
@@ -426,6 +427,10 @@ export function PhotographerOrderDetail({ orderId }: { orderId: number }) {
 					</section>
 
 					{order.status === "AWAITING_PAYMENT" ? <OrderPaymentPanel order={order} /> : null}
+
+					{order.status === "AWAITING_MACHINE_ASSIGNMENT" || order.status === "IN_PROCESSING" ? (
+						<ScheduleChangeAnswer orderId={order.id} />
+					) : null}
 
 					{order.status === "DELIVERED" ? (
 						<section className="order-tracking-card order-confirm-card" aria-labelledby="order-confirm-heading">

@@ -27,7 +27,10 @@ export function IncidentResultsPanel({ incidents }: { incidents: MachineIncident
 							return incident.scheduleChanges.map((change) => (
 								<tr key={`${incident.id}-${change.id}`}>
 									{head}
-									<td>Đơn mã #{change.serviceOrderId} · {stepAppliedLabel(change.stepApplied)}<small>{formatDate(change.oldPromisedAt)} → {formatDate(change.newPromisedAt)}</small></td>
+									<td>
+										<strong>Mã thay đổi #{change.id}</strong> · Đơn mã #{change.serviceOrderId} · {stepAppliedLabel(change.stepApplied)}
+										<small>Hẹn trả: {formatDate(change.oldPromisedAt)} → {formatDate(change.newPromisedAt)}</small>
+									</td>
 									<td>{change.requiresResponse ? `Cần phản hồi trước ${formatDate(change.responseDueAt)}` : "Không cần"}</td>
 								</tr>
 							));

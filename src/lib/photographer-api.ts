@@ -67,7 +67,19 @@ const query = (params: Record<string, string | number | null | undefined>) => {
 	return search.size ? `?${search}` : "";
 };
 
+export type ScheduleChangeChoice = "WAIT" | "CANCEL" | "TRANSFER";
+
+/** Answer endpoint may reply 2xx with an empty body, so it is parsed leniently. */
+async function answerScheduleChange(orderId: number, changeId: number, payload: { choice: ScheduleChangeChoice; note?: string }) {
+	const response = await fetch(`/api/backend/orders/${orderId}/schedule-changes/${changeId}/answer`, { cache: "no-store", ...json(payload) });
+	if (!response.ok) {
+		const body = await response.json().catch(() => ({})) as { message?: string; errorCode?: string };
+		throw new PhotographerApiError(response.status, body.message || "Không thể xử lý yêu cầu.", body.errorCode);
+	}
+}
+
 export const photographerApi = {
+	answerScheduleChange,
 	catalogs: () => Promise.all([
 		request<CatalogItem[]>("film-formats"), request<CatalogItem[]>("film-processes"), request<CatalogItem[]>("service-types"),
 	]).then(([formats, processes, serviceTypes]) => ({ formats, processes, serviceTypes })),
