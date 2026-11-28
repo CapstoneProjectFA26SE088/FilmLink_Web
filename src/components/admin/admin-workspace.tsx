@@ -14,6 +14,7 @@ import {
 	History,
 	Layers3,
 	Library,
+	PackageSearch,
 	UsersRound,
 	type LucideIcon,
 } from "lucide-react";
@@ -32,6 +33,7 @@ export type AdminSection =
 	| "settings"
 	| "subscriptions"
 	| "payments"
+	| "orders"
 	| "complaints"
 	| "moderation"
 	| "knowledge-base";
@@ -46,6 +48,7 @@ const navigationItems: { id: AdminSection; label: string; icon: LucideIcon }[] =
 	{ id: "settings", label: "Cấu hình hệ thống", icon: Cog },
 	{ id: "subscriptions", label: "Gói đăng ký", icon: Layers3 },
 	{ id: "payments", label: "Thanh toán & payout", icon: CircleDollarSign },
+	{ id: "orders", label: "Đơn dịch vụ", icon: PackageSearch },
 	{ id: "complaints", label: "Khiếu nại", icon: Flag },
 	{ id: "moderation", label: "Kiểm duyệt nội dung", icon: ChartNoAxesCombined },
 	{ id: "knowledge-base", label: "Knowledge Base", icon: Library },
@@ -61,6 +64,7 @@ const sectionByPath: Record<string, AdminSection> = {
 	"/admin/settings": "settings",
 	"/admin/subscriptions": "subscriptions",
 	"/admin/payments": "payments",
+	"/admin/orders": "orders",
 	"/admin/complaints": "complaints",
 	"/admin/moderation": "moderation",
 	"/admin/knowledge-base": "knowledge-base",
@@ -76,6 +80,7 @@ const pathBySection: Record<AdminSection, string> = {
 	settings: "/admin/settings",
 	subscriptions: "/admin/subscriptions",
 	payments: "/admin/payments",
+	orders: "/admin/orders",
 	complaints: "/admin/complaints",
 	moderation: "/admin/moderation",
 	"knowledge-base": "/admin/knowledge-base",
