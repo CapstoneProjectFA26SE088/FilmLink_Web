@@ -21,6 +21,18 @@ import {
 import type { Account } from "../model";
 import { navigation } from "../model";
 
+const ROLE_LABELS: Record<string, string> = {
+	PHOTOGRAPHER: "Nhiếp ảnh gia",
+	PHOTOGRAPHY_EXPERT: "Chuyên gia nhiếp ảnh",
+	FILM_LAB_OWNER: "Chủ lab",
+	MODERATOR: "Kiểm duyệt viên",
+	ADMIN: "Quản trị viên",
+};
+
+function roleLabel(role?: string | null) {
+	return (role && ROLE_LABELS[role]) || "Thành viên";
+}
+
 export function WorkspaceSidebar({
 	active,
 	account,
@@ -129,7 +141,7 @@ export function WorkspaceSidebar({
 						</span>
 						<span className="sidebar-user__copy">
 							<strong>{account.fullName || account.email || "Tài khoản FilmLink"}</strong>
-							<small>{accountRoleLabel || account.role || "Thành viên"}</small>
+							<small>{accountRoleLabel || roleLabel(account.role)}</small>
 						</span>
 						<DropdownMenu>
 							<DropdownMenuTrigger className="sidebar-user__trigger" aria-label="Mở menu đăng xuất">
@@ -158,7 +170,7 @@ export function WorkspaceSidebar({
 						</span>
 						<span className="sidebar-user__copy">
 							<strong>{account?.fullName || account?.email || "Khách FilmLink"}</strong>
-							<small>{account ? accountRoleLabel || account.role || "Thành viên" : "Trải nghiệm ngay"}</small>
+							<small>{account ? accountRoleLabel || roleLabel(account.role) : "Trải nghiệm ngay"}</small>
 						</span>
 						<ChevronRight aria-hidden="true" className="sidebar-user__chevron" />
 					</div>

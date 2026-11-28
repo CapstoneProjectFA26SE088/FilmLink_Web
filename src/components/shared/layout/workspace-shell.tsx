@@ -1,11 +1,11 @@
 "use client";
 
+import { Dialog } from "@base-ui/react/dialog";
 import { ArrowRight, Menu, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { type ReactNode, useState } from "react";
-import { Button } from "@/components/ui/button";
-import type { Account, Section } from "../model";
+import { type ReactNode, useEffect, useState } from "react";
+import { navigation, type Account, type Section } from "../model";
 import { WorkspaceNotifications, type WorkspaceNotification } from "./workspace-notifications";
 import { WorkspaceSidebar } from "./workspace-sidebar";
 
@@ -60,78 +60,66 @@ export function WorkspaceShell<T extends string = Section>({
 		}
 	}
 
+	const sectionLabel = (navigationItems ?? navigation).find((item) => item.id === active)?.label;
+
+	useEffect(() => {
+		if (!mobileMenu) return;
+		const desktop = window.matchMedia("(min-width: 761px)");
+		function closeOnDesktop() {
+			if (desktop.matches) setMobileMenu(false);
+		}
+		desktop.addEventListener("change", closeOnDesktop);
+		return () => desktop.removeEventListener("change", closeOnDesktop);
+	}, [mobileMenu]);
+
+	function sidebar(onClose?: () => void) {
+		return (
+			<WorkspaceSidebar
+				active={active}
+				account={account}
+				homeHref={homeHref ?? (mode === "user" || mode === "expert" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
+				orderCount={orderCount}
+				showOrderCount={(mode === "user" || mode === "expert") && orderCount !== undefined}
+				navigationItems={navigationItems}
+				accountRoleLabel={accountRoleLabel}
+				accountInitials={accountInitials}
+				onLogout={mode !== "guest" ? handleLogout : undefined}
+				logoutPending={logoutPending}
+				logoutError={logoutError}
+				marketplaceEnabled={mode === "user" || mode === "expert"}
+				onClose={onClose}
+				onNavigate={(section) => onNavigate(section as T)}
+				onDismissCommunityNote={() => setCommunityNoteVisible(false)}
+				communityNoteVisible={communityNote && communityNoteVisible}
+			/>
+		);
+	}
+
 	return (
 		<div className="user-app">
-			<aside className="user-sidebar">
-				<WorkspaceSidebar
-					active={active}
-					account={account}
-					homeHref={homeHref ?? (mode === "user" || mode === "expert" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
-					orderCount={orderCount}
-					showOrderCount={(mode === "user" || mode === "expert") && orderCount !== undefined}
-					navigationItems={navigationItems}
-					accountRoleLabel={accountRoleLabel}
-					accountInitials={accountInitials}
-					onLogout={mode !== "guest" ? handleLogout : undefined}
-					logoutPending={logoutPending}
-					logoutError={logoutError}
-					marketplaceEnabled={mode === "user" || mode === "expert"}
-					onNavigate={(section) => onNavigate(section as T)}
-					onDismissCommunityNote={() => setCommunityNoteVisible(false)}
-					communityNoteVisible={communityNote && communityNoteVisible}
-				/>
-			</aside>
-
-			{mobileMenu && (
-				<div className="mobile-menu-layer">
-					<aside className="mobile-menu-panel" aria-label="Menu điều hướng">
-						<div className="mobile-menu-top">
-							<span>Menu</span>
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon"
-								className="mobile-menu-close"
-								onClick={() => setMobileMenu(false)}
-								aria-label="Đóng menu"
-							>
-								<X />
-							</Button>
-						</div>
-						<WorkspaceSidebar
-							active={active}
-							account={account}
-							homeHref={homeHref ?? (mode === "user" || mode === "expert" ? "/dashboard" : mode === "lab-owner" ? "/lab-owner" : mode === "admin" ? "/admin" : "/")}
-							orderCount={orderCount}
-							showOrderCount={(mode === "user" || mode === "expert") && orderCount !== undefined}
-							navigationItems={navigationItems}
-							accountRoleLabel={accountRoleLabel}
-							accountInitials={accountInitials}
-							onLogout={mode !== "guest" ? handleLogout : undefined}
-							logoutPending={logoutPending}
-							logoutError={logoutError}
-							marketplaceEnabled={mode === "user" || mode === "expert"}
-							onNavigate={(section) => onNavigate(section as T)}
-							onDismissCommunityNote={() => setCommunityNoteVisible(false)}
-							communityNoteVisible={communityNote && communityNoteVisible}
-							onClose={() => setMobileMenu(false)}
-						/>
-					</aside>
-				</div>
-			)}
+			<a href="#workspace-content" className="workspace-skip">Đi đến nội dung chính</a>
+			<aside className="user-sidebar">{sidebar()}</aside>
 
 			<main className="user-main">
 				<header className="user-topbar">
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon"
-						className="mobile-menu-trigger"
-						onClick={() => setMobileMenu(true)}
-						aria-label="Mở menu"
-					>
-						<Menu />
-					</Button>
+					<Dialog.Root open={mobileMenu} onOpenChange={setMobileMenu}>
+						<Dialog.Trigger className="mobile-menu-trigger" aria-label="Mở điều hướng">
+							<Menu aria-hidden="true" />
+						</Dialog.Trigger>
+						<Dialog.Portal>
+							<Dialog.Backdrop className="mobile-menu-layer" />
+							<Dialog.Popup className="mobile-menu-panel">
+								<div className="mobile-menu-top">
+									<Dialog.Title>Điều hướng</Dialog.Title>
+									<Dialog.Close className="mobile-menu-close" aria-label="Đóng điều hướng">
+										<X aria-hidden="true" />
+									</Dialog.Close>
+								</div>
+								{sidebar(() => setMobileMenu(false))}
+							</Dialog.Popup>
+						</Dialog.Portal>
+					</Dialog.Root>
+					{sectionLabel && <span className="workspace-location">{sectionLabel}</span>}
 					<div className="topbar-actions">
 						{account ? (
 							<>
@@ -150,7 +138,7 @@ export function WorkspaceShell<T extends string = Section>({
 						) : null}
 					</div>
 				</header>
-				<div className="page-content">{children}</div>
+				<div id="workspace-content" tabIndex={-1} className="page-content">{children}</div>
 			</main>
 		</div>
 	);
