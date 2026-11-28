@@ -1,6 +1,5 @@
-import { AdminQueueScreen } from "@/components/admin/admin-pages";
+import { FinanceReport } from "@/components/finance-report";
 
 export default function Page() {
-	return <AdminQueueScreen section="payments" />;
+  return <FinanceReport view="admin-payouts" />;
 }
-
