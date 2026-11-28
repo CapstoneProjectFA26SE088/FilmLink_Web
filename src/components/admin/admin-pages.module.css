@@ -33,7 +33,7 @@
 .search { width: min(calc(100% - 1.35rem - 2px), calc(23rem - 1.35rem - 2px)); min-height: 2.25rem; padding: 0 .65rem; border: 1px solid var(--border); border-radius: .5rem; color: var(--foreground); background: var(--surface); font: inherit; font-size: .76rem; }
 .select { min-height: 2.25rem; padding: 0 .65rem; border: 1px solid var(--border); border-radius: .5rem; color: var(--foreground); background: var(--surface); font: inherit; font-size: .76rem; }
 .search:focus-visible,.select:focus-visible,.field:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-.tableWrap { width: 100%; overflow-x: auto; }
+.tableWrap { position: relative; width: 100%; overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; text-align: left; font-size: .76rem; }
 .table th { height: 2.6rem; padding: 0 .8rem; color: var(--text-muted); background: var(--surface-muted); font-size: .68rem; font-weight: 600; white-space: nowrap; }
 .table td { height: 3.35rem; padding: .45rem .8rem; border-top: 1px solid var(--border); white-space: nowrap; }

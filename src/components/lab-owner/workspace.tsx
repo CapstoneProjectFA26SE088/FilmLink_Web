@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { InlineMessage } from "@/components/shared/feedback/inline-message";
 import { WorkspaceShell } from "@/components/shared/layout/workspace-shell";
 import type { Account } from "@/components/shared/model";
 import { labOwnerNavigation, labOwnerNotifications, type LabOwnerSection } from "./dashboard-data";
@@ -91,7 +93,7 @@ export function LabOwnerWorkspace({ children }: { children: ReactNode }) {
 				}
 				setAccount(currentAccount);
 				if (labResponse.status === 404) {
-					setProfileNotice("Tài khoản chưa được gắn với hồ sơ Film Lab đã duyệt. Các số liệu dưới đây là dữ liệu minh họa.");
+					setProfileNotice("Tài khoản chưa được gắn với hồ sơ Film Lab đã duyệt nên các số liệu bên dưới là dữ liệu minh họa.");
 					return;
 				}
 				if (!labResponse.ok) throw new Error("Không tải được hồ sơ Film Lab.");
@@ -133,12 +135,21 @@ export function LabOwnerWorkspace({ children }: { children: ReactNode }) {
 			onNavigate={(section) => router.push(pathBySection[section as LabOwnerSection] ?? "/lab-owner")}
 		>
 			<div className={styles.workspaceFrame}>
-				{profileNotice && <p className={styles.profileNotice} role="status">{profileNotice}</p>}
+				{profileNotice ? (
+					<InlineMessage tone="warning" className="mb-4">
+						{profileNotice}{" "}
+						<Link href="/open-lab" className="font-medium underline underline-offset-2">
+							Đăng ký mở Film Lab
+						</Link>
+					</InlineMessage>
+				) : null}
 				{children}
 				<footer className={styles.workspaceFooter}>
 					<span className={lab?.acceptingOrders ? styles.acceptingStatus : styles.pausedStatus} />
-					{lab ? `${labName} · ${lab.acceptingOrders ? "Đang nhận đơn" : "Tạm ngưng nhận đơn"}` : "Dữ liệu nghiệp vụ đang ở chế độ minh họa"}
-					{address && <span className={styles.footerAddress}>{address}</span>}
+					{lab
+						? `${labName} · ${lab.acceptingOrders ? "Đang nhận đơn" : "Tạm ngưng nhận đơn"}`
+						: "Chưa có hồ sơ Film Lab được duyệt · dữ liệu minh họa"}
+					{address ? <span className={styles.footerAddress}>{address}</span> : null}
 				</footer>
 			</div>
 		</WorkspaceShell>

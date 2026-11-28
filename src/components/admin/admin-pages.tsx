@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, Building2, CircleDollarSign, ClipboardCheck, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { adminApi, AdminApiError } from "@/lib/admin-api";
 import { AdminQueuePage } from "./components/admin-queue-page";
 import { adminComplaints, adminExperts, adminKnowledgePosts, adminLabs, adminOrders, adminPayments, adminReports, formatVnd, type AdminDecision, type AdminRecord } from "./data/fixtures";
 import styles from "./admin-pages.module.css";
@@ -52,18 +53,105 @@ export function AdminDashboardPage() {
 	</div>;
 }
 
-type AdminUser = { id: string; name: string; email: string; role: string; status: string };
-const seedUsers: AdminUser[] = [
-	{ id: "USR-01", name: "Nguyễn Minh Anh", email: "minhanh@example.test", role: "USER", status: "Hoạt động" },
-	{ id: "USR-02", name: "Chủ Mộc Lab", email: "moc@example.test", role: "FILM_LAB_OWNER", status: "Hoạt động" },
-	{ id: "USR-03", name: "Nguyễn Hoàng Nam", email: "nam@example.test", role: "EXPERT", status: "Chờ xác minh" },
-];
+type AdminUser = {
+	id: number;
+	fullName?: string;
+	email: string;
+	role: string;
+	status: string;
+};
 
 export function AdminUsersPage() {
-	const [users, setUsers] = useState(seedUsers);
 	const [query, setQuery] = useState("");
-	const filtered = users.filter((user) => `${user.name} ${user.email} ${user.role}`.toLocaleLowerCase("vi").includes(query.toLocaleLowerCase("vi")));
-	return <div className={styles.page}><header className={styles.heading}><div><p className={styles.eyebrow}>Quản trị tài khoản</p><h1>Người dùng & vai trò</h1><p>Tra cứu vai trò và trạng thái tài khoản trên nền tảng.</p></div></header><p className={styles.demoNote}>Danh sách hiện là dữ liệu prototype; backend hiện chưa cung cấp API quản trị người dùng.</p><section className={styles.panel}><div className={styles.panelHeader}><div><h2>Tài khoản</h2><p>{filtered.length} người dùng</p></div></div><div className={styles.tools}><input className={styles.search} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm tên, email hoặc vai trò" aria-label="Tìm người dùng" /></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Người dùng</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{filtered.map((user) => <tr key={user.id}><td>{user.name}<small>{user.id}</small></td><td>{user.email}</td><td><select className={styles.select} aria-label={`Vai trò ${user.name}`} value={user.role} onChange={(event) => setUsers((items) => items.map((item) => item.id === user.id ? { ...item, role: event.target.value } : item))}><option value="USER">Người dùng</option><option value="FILM_LAB_OWNER">Film Lab Owner</option><option value="EXPERT">Chuyên gia</option><option value="ADMIN">Admin</option></select></td><td><span className={styles.badge}>{user.status}</span></td><td><Button size="sm" variant="outline" onClick={() => setUsers((items) => items.map((item) => item.id === user.id ? { ...item, status: item.status === "Đã khóa" ? "Hoạt động" : "Đã khóa" } : item))}>{user.status === "Đã khóa" ? "Mở khóa" : "Khóa"}</Button></td></tr>)}</tbody></table></div></section></div>;
+	const [user, setUser] = useState<AdminUser | null>(null);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState("");
+	const [notice, setNotice] = useState("");
+	const [confirming, setConfirming] = useState(false);
+
+	async function search(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		if (busy) return;
+		const value = query.trim();
+		setUser(null);
+		setError("");
+		setNotice("");
+		setConfirming(false);
+		const byId = /^[1-9]\d*$/.test(value);
+		if (!byId && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+			setError("Nhập địa chỉ email đầy đủ hoặc mã tài khoản dạng số.");
+			return;
+		}
+		setBusy(true);
+		try {
+			const params = new URLSearchParams(byId ? { id: value } : { email: value });
+			const result = await adminApi<AdminUser>(`accounts/search?${params}`);
+			setUser(result);
+			if (!result) setNotice("Không tìm thấy tài khoản phù hợp.");
+		} catch (cause) {
+			if (cause instanceof AdminApiError && cause.status === 404) setNotice("Không tìm thấy tài khoản phù hợp.");
+			else setError(cause instanceof Error ? cause.message : "Không thể tra cứu tài khoản.");
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	async function deactivate() {
+		if (!user || !confirming || busy) return;
+		setBusy(true);
+		setError("");
+		try {
+			await adminApi<void>(`accounts/${user.id}/deactivate`, { method: "PATCH", headers: { "content-type": "application/json" } });
+			setUser(null);
+			setNotice(`Đã vô hiệu hóa tài khoản ${user.email}.`);
+		} catch (cause) {
+			setError(cause instanceof Error ? cause.message : "Không thể vô hiệu hóa tài khoản.");
+		} finally {
+			setConfirming(false);
+			setBusy(false);
+		}
+	}
+
+	return (
+		<div className={styles.page}>
+			<header className={styles.heading}>
+				<div><h1>Người dùng &amp; vai trò</h1><p>Tra cứu thông tin và trạng thái tài khoản trên FilmLink.</p></div>
+			</header>
+			<section className={styles.panel} aria-labelledby="account-search-title">
+				<div className={styles.panelHeader}><h2 id="account-search-title">Tra cứu tài khoản</h2></div>
+				<form method="post" onSubmit={search} className={styles.tools}>
+					<input className={styles.search} value={query} onChange={(event) => setQuery(event.target.value)}
+						disabled={busy} required maxLength={255} aria-label="Email hoặc mã tài khoản" placeholder="Email hoặc mã tài khoản" />
+					<Button type="submit" disabled={busy || !query.trim()}>Tra cứu</Button>
+				</form>
+				{error && <p className={styles.errorMessage} role="alert">{error}</p>}
+				{busy && <p className={styles.empty} role="status">Đang xử lý…</p>}
+				{notice && <p className={styles.empty} role="status">{notice}</p>}
+				{user && (
+					<div className={styles.tableWrap}>
+						<table className={styles.table}>
+							<caption className="sr-only">Tài khoản tìm thấy</caption>
+							<thead><tr><th>Người dùng</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead>
+							<tbody><tr>
+								<td>{user.fullName || "Chưa cập nhật"}<small>Mã {user.id}</small></td>
+								<td>{user.email}</td><td>{user.role}</td><td><span className={styles.badge}>{user.status}</span></td>
+								<td>{user.status === "ACTIVE" && user.role !== "ADMIN" && !confirming && <Button type="button" size="sm" variant="outline" onClick={() => setConfirming(true)}>Vô hiệu hóa</Button>}</td>
+							</tr></tbody>
+						</table>
+					</div>
+				)}
+				{confirming && user && (
+					<div className={styles.formBody}>
+						<p>Bạn muốn vô hiệu hóa tài khoản <strong>{user.email}</strong>?</p>
+						<div className={styles.formActions}>
+							<Button type="button" variant="outline" disabled={busy} onClick={() => setConfirming(false)}>Hủy</Button>
+							<Button type="button" variant="destructive" disabled={busy} onClick={deactivate}>Xác nhận vô hiệu hóa</Button>
+						</div>
+					</div>
+				)}
+			</section>
+		</div>
+	);
 }
 
 type CatalogItem = { id: number | string; code: string; displayName: string; description?: string; status: string };
