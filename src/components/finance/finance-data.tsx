@@ -9,7 +9,7 @@ import {
 	FINANCE_PAYOUT_STATUS_MAP,
 } from "./finance-labels";
 
-export type FinanceView = "lab-income" | "lab-debt" | "lab-commissions" | "admin-payouts";
+export type FinanceView = "lab-income" | "lab-debt" | "lab-commissions" | "admin-payouts" | "admin-debts";
 
 export type FinanceColumn = { header: string; align?: "end" };
 export type FinanceRow = { id: number; cells: ReactNode[] };
@@ -29,7 +29,25 @@ type Payout = { id: number; payoutCode: string; recipientType: string; amountVnd
 type Commission = { id: number; kind: string; baseAmountVnd: number; ratePercent: number; amountVnd: number; status: string; createdAt: string };
 type Debt = { id: number; billingPeriod: string; dueDate: string; totalAmountVnd: number; paidAmountVnd: number; status: string };
 
+const LAB_DEBT_SCREEN: FinanceScreen = {
+	title: "Công nợ",
+	description: "Đối chiếu hoa hồng phải thanh toán và số tiền đã trả theo kỳ.",
+	columns: [
+		{ header: "Kỳ đối soát" }, { header: "Hạn thanh toán" }, { header: "Tổng công nợ", align: "end" },
+		{ header: "Đã thanh toán", align: "end" }, { header: "Trạng thái" },
+	],
+	emptyTitle: "Lab chưa có kỳ công nợ",
+	emptyHint: "Kỳ công nợ chỉ xuất hiện khi lab có hoa hồng cần thanh toán theo kỳ đối soát. Lab chưa phát sinh công nợ nào.",
+};
+
 export const FINANCE_SCREENS: Record<FinanceView, FinanceScreen> = {
+	"admin-debts": {
+		...LAB_DEBT_SCREEN,
+		title: "Công nợ Film Lab",
+		description: "Xem kỳ công nợ của một Film Lab và xác nhận khi đã nhận đủ tiền.",
+		emptyTitle: "Lab này chưa có kỳ công nợ",
+		emptyHint: "Kỳ công nợ chỉ xuất hiện khi lab có hoa hồng cần thanh toán theo kỳ đối soát. Hãy kiểm tra lại mã lab.",
+	},
 	"lab-income": {
 		title: "Doanh thu",
 		description: "Theo dõi các khoản nền tảng chuyển cho lab và ngày thực nhận.",
@@ -40,16 +58,7 @@ export const FINANCE_SCREENS: Record<FinanceView, FinanceScreen> = {
 		emptyTitle: "Lab chưa có khoản chi trả",
 		emptyHint: "Khi nền tảng chuyển tiền cho lab, từng khoản chi trả sẽ hiện ở đây cùng ngày thực nhận. Danh sách trống nghĩa là chưa có khoản nào được tạo.",
 	},
-	"lab-debt": {
-		title: "Công nợ",
-		description: "Đối chiếu hoa hồng phải thanh toán và số tiền đã trả theo kỳ.",
-		columns: [
-			{ header: "Kỳ đối soát" }, { header: "Hạn thanh toán" }, { header: "Tổng công nợ", align: "end" },
-			{ header: "Đã thanh toán", align: "end" }, { header: "Trạng thái" },
-		],
-		emptyTitle: "Lab chưa có kỳ công nợ",
-		emptyHint: "Kỳ công nợ chỉ xuất hiện khi lab có hoa hồng cần thanh toán theo kỳ đối soát. Lab chưa phát sinh công nợ nào.",
-	},
+	"lab-debt": LAB_DEBT_SCREEN,
 	"lab-commissions": {
 		title: "Hoa hồng",
 		description: "Theo dõi tỷ lệ và số tiền hoa hồng ghi nhận từ từng giao dịch.",
@@ -153,8 +162,12 @@ function debtPage(result: ApiPage<Debt>): FinancePage {
 }
 
 /** Loads one page of a finance list. Request paths and query are unchanged from the original report. */
-export async function loadFinancePage(view: FinanceView, page: number, signal: AbortSignal): Promise<FinancePage> {
+export async function loadFinancePage(view: FinanceView, page: number, signal: AbortSignal, labId?: number): Promise<FinancePage> {
 	const query = new URLSearchParams({ page: String(page), size: "20" });
+	if (view === "admin-debts") {
+		if (!labId) throw new Error("Hãy nhập mã Film Lab để xem công nợ.");
+		return debtPage(await labOwnerApi<ApiPage<Debt>>(`commission-debts/lab/${labId}?${query}`, { signal }));
+	}
 	if (view === "lab-debt" || view === "lab-commissions") {
 		const lab = await labOwnerApi<{ id: number }>("film-labs/me", { signal });
 		if (view === "lab-commissions") {

@@ -20,6 +20,7 @@ const MAX_LAB_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_ORDER_MULTIPART_BYTES = 50 * 1024 * 1024
 const HANDOVER_IMAGE_TYPES = new Set(["image/jpeg", "image/png"])
 const SCAN_IMAGE_TYPES = new Set(["image/jpeg"])
+const PAYOUT_RECEIPT_TYPES = new Set(["image/jpeg", "image/png", "application/pdf"])
 
 type RouteContext = { params: Promise<{ path: string[] }> }
 type OrderUpload = "receipt" | "scans" | "film-return" | "damage"
@@ -173,6 +174,36 @@ async function proxy(request: NextRequest, context: RouteContext) {
       const prepared = await prepareOrderMultipart(request, orderUpload)
       if (prepared instanceof NextResponse) return prepared
       body = prepared
+    } else if (method === "POST" && /^admin\/payouts\/\d+\/paid$/.test(backendPath)) {
+      const length = Number(request.headers.get("content-length") || 0)
+      if (length > MAX_LAB_IMAGE_BYTES + 64 * 1024) {
+        return NextResponse.json({ message: "Biên lai không được vượt quá 10 MB." }, { status: 413 })
+      }
+      let incoming: FormData
+      try {
+        incoming = await request.formData()
+      } catch {
+        return NextResponse.json({ message: "Dữ liệu tải biên lai không hợp lệ." }, { status: 400 })
+      }
+      const receipt = incoming.get("receipt")
+      if (!(receipt instanceof File) || receipt.size === 0) {
+        return NextResponse.json(
+          { message: "Vui lòng chọn tệp biên lai chi trả (JPG, PNG hoặc PDF)." },
+          { status: 400 }
+        )
+      }
+      if (receipt.size > MAX_LAB_IMAGE_BYTES) {
+        return NextResponse.json({ message: "Biên lai không được vượt quá 10 MB." }, { status: 413 })
+      }
+      if (!PAYOUT_RECEIPT_TYPES.has(receipt.type)) {
+        return NextResponse.json(
+          { message: "Biên lai chỉ nhận tệp JPG, PNG hoặc PDF." },
+          { status: 400 }
+        )
+      }
+      const outgoing = new FormData()
+      outgoing.append("receipt", receipt, receipt.name)
+      body = outgoing
     } else if (method === "POST" && backendPath === "film-labs/me/images") {
       const length = Number(request.headers.get("content-length") || 0)
       if (length > MAX_LAB_IMAGE_BYTES + 64 * 1024) {

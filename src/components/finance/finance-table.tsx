@@ -1,7 +1,16 @@
+import { Button } from "@/components/ui/button";
 import type { FinanceColumn, FinanceRow } from "./finance-data";
 import styles from "./finance.module.css";
 
-export function FinanceTable({ label, columns, rows }: { label: string; columns: FinanceColumn[]; rows: FinanceRow[] }) {
+type FinanceTableProps = {
+	label: string;
+	columns: FinanceColumn[];
+	rows: FinanceRow[];
+	/** When set, each row gets a "Chi tiết" action that reports the row id. */
+	onOpenRow?: (id: number) => void;
+};
+
+export function FinanceTable({ label, columns, rows, onOpenRow }: FinanceTableProps) {
 	return (
 		<div className={styles.tableWrap}>
 			<table className={styles.table} aria-label={label}>
@@ -12,6 +21,7 @@ export function FinanceTable({ label, columns, rows }: { label: string; columns:
 								{column.header}
 							</th>
 						))}
+						{onOpenRow ? <th scope="col" className={styles.end}>Thao tác</th> : null}
 					</tr>
 				</thead>
 				<tbody>
@@ -22,6 +32,11 @@ export function FinanceTable({ label, columns, rows }: { label: string; columns:
 									{cell}
 								</td>
 							))}
+							{onOpenRow ? (
+								<td className={styles.end}>
+									<Button variant="outline" size="sm" onClick={() => onOpenRow(row.id)}>Chi tiết</Button>
+								</td>
+							) : null}
 						</tr>
 					))}
 				</tbody>

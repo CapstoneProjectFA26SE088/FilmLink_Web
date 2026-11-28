@@ -1,5 +1,5 @@
-import { FinanceReport } from "@/components/finance-report";
+import { AdminPaymentsPage } from "@/components/admin/admin-payments-page";
 
 export default function Page() {
-  return <FinanceReport view="admin-payouts" />;
+  return <AdminPaymentsPage />;
 }
